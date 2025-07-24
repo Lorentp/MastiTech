@@ -1,0 +1,57 @@
+<div class="form-container">
+
+
+<form id="add-cow-form">
+    <label for="name">Caravana del animal:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label>Ubres a tratar:</label>
+    <div>
+        <input type="checkbox" id="DI" name="udders" value="DI">
+        <label for="DI">DI</label>
+        <input type="checkbox" id="DD" name="udders" value="DD">
+        <label for="DD">DD</label>
+        <input type="checkbox" id="TI" name="udders" value="TI">
+        <label for="TI">TI</label>
+        <input type="checkbox" id="TD" name="udders" value="TD">
+        <label for="TD">TD</label>
+    </div>
+
+    <label for="severity">Severidad</label>
+    <select name="severity" id="severityId">
+        <option value="">Eliga la severidad</option>
+        <option value="1">Grado 1</option>
+        <option value="2">Grado 2</option>
+        <option value="3">Grado 3</option>
+    </select>
+
+    <label for="treatmentId">Tratamiento:</label>
+    <select id="treatmentId" name="treatmentId" required>
+        <option value="">Seleccione un tratamiento</option>
+        {{#each treatments}}
+            <option value="{{this._id}}">{{this.title}}</option>
+        {{/each}}
+    </select>
+
+    <label for="startDate">Fecha de inicio:</label>
+    <input type="date" id="startDate" name="startDate" required>
+
+    <label for="startTurn">Turno de inicio:</label>
+    <select id="startTurn" name="startTurn" required>
+        <option value="">Seleccione el turno</option>
+        <option value="morning">Mañana (00:00–12:00)</option>
+        <option value="afternoon">Tarde (12:00–24:00)</option>
+    </select>
+
+    <label for="duration">Duración(turnos de 12 horas):</label>
+    <input type="number" id="duration" name="duration" readonly>
+
+    <label for="endDate">Fecha final de tratamiento:</label>
+    <input type="date" id="endDate" name="endDate" readonly>
+
+    <label for="endDateDiscardMilkd">Fecha final de descarte de leche:</label>
+    <input type="date" id="endDateDiscardMilk" name="endDateDiscardMilk" readonly>
+
+    <button type="submit" class="link-button">Guardar Evento</button>
+</form>
+</div>

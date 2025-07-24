@@ -1,0 +1,19 @@
+<div class="form-container">
+   <form id="deleteTreatmentForm">
+    <h2>Eliminar tratamiento</h2>
+    
+    <div>
+        <label for="nameDeleteTreatment">Tratamiento</label>
+        <select id="nameDeleteTreatment" name="nameDeleteTreatment">
+            <option value="">Seleccionar tratamiento</option>
+            {{#each treatments}}
+                <option value="{{this._id}}">{{this.title}}</option>
+            {{/each}}
+        </select>
+    </div>
+    
+    <input type="hidden" id="idInputDeleteTreatment" name="_id">
+    
+    <button type="submit">Eliminar</button>
+    </form>
+</div>

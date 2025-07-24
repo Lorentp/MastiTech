@@ -1,0 +1,18 @@
+<div class="form-container">
+    <h1>Eliminar animal</h1>
+    <form id="deleteCowFormSubmit">
+        <input type="hidden" name="_method" id="deleteCowFormMethod" value="DELETE">
+        <div>
+            <p>Caravana del animal:</p>
+            <select name="name" id="nameDeleteCow" required>
+                <option value=""disabled selected>Seleccionar animal</option>
+                {{#each cows}}
+                    <option value="{{this.name}}" _id="{{this._id}}">{{this.name}}</option>
+                {{/each}}
+            </select>
+            <input type="hidden" name="_id" id="idInputDeleteCow">
+        </div>
+
+        <input type="submit" class="form-button" value="Eliminar animal">
+    </form>
+</div>

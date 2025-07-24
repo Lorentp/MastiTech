@@ -1,0 +1,31 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/home" class="link-button">Volver al inicio</a>
+    <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
+    <a href="/descarte-leche" class="link-button">Animales en descarte de leche</a>
+</nav>
+
+
+<div class="finished-milk-discard-title">
+    <h1>Vacas que Han Terminado el Descarte de Leche</h1>
+</div>
+
+{{#if finishedMilkDiscardCows.length}}
+    <div class="finished-milk-discard-cards">
+        {{#each finishedMilkDiscardCows}}
+            <div class="finished-milk-discard-card">
+                <p><strong>Carvana:</strong> {{name}}</p>
+                <p><strong>Fecha de Fin de Descarte:</strong> {{formatDate endDateDiscardMilk}}</p>
+                <p><strong>Turno inicio de Descarte:</strong> {{formatTurn startTurn}}</p>
+                <p><strong>Tratamiento:</strong> {{treatment.[0].title}}</p>
+                <button class="finalize-button" onclick="finalizeCow('{{_id}}')">Liberar animal</button>
+            </div>
+        {{/each}}
+    </div>
+{{else}}
+    <p class="no-cows-message">No hay vacas que hayan terminado el descarte de leche pendientes de finalización.</p>
+{{/if}}
+
+
+<script src="/js/enfermery/finalizeCows.js"></script>

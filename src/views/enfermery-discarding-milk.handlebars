@@ -1,0 +1,49 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/home" class="link-button">Volver al inicio</a>
+    <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
+    <a href="/liberar-leche" class="link-button">Animales para liberar</a>
+</nav>
+
+
+<h1>Vacas en Período de Descarte de Leche</h1>
+
+{{#if milkDiscardCows.length}}
+    {{#each milkDiscardCows}}
+        <div class="treated-container">
+            <div>
+                <p class="cow">Nombre del animal: {{this.name}}</p>
+            </div>
+            <div>
+                <p class="treatment">Tratamiento: {{this.treatment.[0].title}}</p>
+            </div>
+            <div>
+                <p>Ubres afectadas: {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Ninguna{{/if}}</p>
+            </div>
+            <div>
+                <p>Cantidad de eventos: {{this.events}}</p>
+            </div>
+            <div>
+                <p>Empieza tratamiento el día: {{formatDate this.startDate}}</p>
+            </div>
+            <div>
+                <p>Empieza tratamiento en el turno: {{formatTurn this.startTurn}}</p>
+            </div>
+            <div>
+                <p>Finalizó tratamiento el día: {{formatDate this.endDate}}</p>
+            </div>
+            <div>
+                <p>Finaliza descarte de leche el día: {{formatDate this.endDateDiscardMilk}}</p>
+            </div>            
+            <div>
+                <p>Turno actual: {{this.currentTurn}}</p>
+            </div>
+            <div>
+                <p>Turnos restantes de descarte de leche: {{this.remainingDiscardTurns}}</p>
+            </div>
+        </div>
+    {{/each}}
+{{else}}
+    <p class="no-cows-message">No hay vacas en período de descarte de leche actualmente.</p>
+{{/if}}

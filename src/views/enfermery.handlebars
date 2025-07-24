@@ -1,0 +1,43 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
+    <a href="/descarte-leche" class="link-button">Animales en descarte de leche</a>
+    <a href="/liberar-leche" class="link-button">Animales para liberar</a>
+</nav>
+
+
+<div class="add-page-buttons">
+    <button class="add-page-button" id="addCowButton">Tratar animal</button>
+    <button class="add-page-button" id="deleteCowButton">Eliminar animal</button>
+</div>
+
+<div class="add-page-buttons">
+    <button class="add-page-button" id="addTreatmentButton">Agregar tratamiento</button>
+    <button class="add-page-button" id="deleteTreatmentButton">Eliminar Tratamiento</button>
+</div>
+
+
+<div class="hidden" id="addCowForm">
+    {{>enfermery/add-cow-form}} 
+</div>
+<div class="hidden" id="addTreatmentForm">
+    {{>enfermery/add-treatment-form}}
+</div>
+
+<div class="hidden" id="deleteCowForm">
+    {{>enfermery/delete-cow-form}}
+</div>
+<div class="hidden" id="deleteTreatmentForm">
+    {{>enfermery/delete-treatment-form}}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
+<script src="/js/enfermery/buttonsAdd.js"></script>
+<script src="/js/enfermery/cowToTreatment.js"></script>
+<script src="/js/enfermery/cowToTreatmentSubmit.js"></script>
+<script src="/js/enfermery/newTreatment.js"></script>
+<script src="/js/enfermery/deleteCow.js"></script>
+<script src="/js/enfermery/deleteTreatment.js"></script>
+<script src="/js/enfermery/dailyPopup.js"></script>  

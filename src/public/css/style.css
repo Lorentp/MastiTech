@@ -1,0 +1,423 @@
+/*Fuentes*/
+
+@font-face {
+  font-family: "Futura Heavy";
+  src: url("../fonts/futura-std-heavy.otf");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Futura Medium";
+  src: url("../fonts/futura-std-medium.otf");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/*Colores*/
+:root {
+  --Azul: #379393;
+  --Naranja: #f7b801;
+  --Lila: #873582;
+  --Verde: #aed952;
+  --VerdeOscuro: #15231f;
+  --verdePasto: #2c4125;
+  --LilaOscuro: #53255b;
+}
+
+.enfermery-button {
+  background-color: var(--Lila);
+  padding: 1rem;
+  border-radius: 12px;
+  border: solid 2px;
+  text-decoration: none;
+}
+
+body {
+  background-color: var(--verdePasto);
+}
+a {
+  color: black;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: white;
+  font-family: "Futura Heavy", sans-serif;
+}
+
+p,
+li,
+ul,
+a {
+  font-family: "Futura Medium", sans-serif;
+}
+
+.title {
+  background-color: var(--VerdeOscuro);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: solid 2px;
+  text-decoration: none;
+  margin-top: 2rem;
+  width: auto;
+}
+.title h2 {
+  color: rgb(255, 255, 255);
+}
+/*Login */
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.login-container div {
+  padding: 2rem;
+  background-color: var(--Verde);
+}
+
+.login-container div input {
+  font-size: 1.5rem;
+  border-radius: 2px;
+}
+
+.login-container div button {
+  font-size: 1.5rem;
+  background-color: var(--verdePasto);
+  color: white;
+}
+
+.input-error {
+  margin-top: 10px;
+  color: red;
+  font-size: 24px;
+}
+
+/*Header*/
+.header-div {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  background-color: var(--VerdeOscuro);
+  margin-bottom: 2rem;
+}
+
+.headerlogged-div {
+  display: flex;
+  background-color: var(--VerdeOscuro);
+}
+
+.headerlogged-div h1 {
+  display: none;
+}
+.header-img {
+  width: 25%;
+  margin-right: 1rem;
+}
+
+/*Nav*/
+.welcome-button {
+  display: flex;
+  justify-content: space-between;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/*Home*/
+
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.nav-corral {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.nav-corral a {
+  width: 30%;
+  margin: 1rem;
+}
+.treatment-container {
+  background-color: #ffc32c;
+  margin: 0.5rem;
+  border-radius: 12px;
+  border: solid 2px;
+  padding: 1rem;
+  font-size: 20px;
+}
+.reset-treatment {
+  background-color: #ff792c;
+  margin: 0.5rem;
+  border-radius: 12px;
+  border: solid 2px;
+  padding: 1rem;
+  font-size: 20px;
+}
+
+.link-button {
+  background-color: var(--Verde);
+  padding: 1rem;
+  border-radius: 12px;
+  border: solid 2px;
+  text-decoration: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.corral-button {
+  width: 10%;
+  text-align: center;
+}
+
+.treated-container {
+  background-color: var(--Naranja);
+  margin: 0.5rem;
+  border-radius: 12px;
+  border: solid 2px;
+  padding: 1rem;
+  font-size: 20px;
+}
+
+
+.reset-button {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+/*Forms*/
+
+.add-page-buttons {
+  background-color: orange;
+  padding: 1rem;
+  border-radius: 12px;
+  border: solid 2px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.add-page-button {
+  width: calc(33.33% - 10px);
+  margin-bottom: 10px;
+  background-color: rgb(255, 222, 161);
+  padding: 1rem;
+  border-radius: 12px;
+  border: solid 2px;
+  text-decoration: none;
+}
+
+.form-container {
+  background-color: #ffc32c;
+  margin: 1.5rem 0.5rem;
+  border-radius: 12px;
+  border: solid 2px;
+  padding: 1rem;
+  font-size: 20px;
+}
+
+input,
+select {
+  width: 100%;
+
+  height: 3rem;
+  font-size: 20px;
+  border-radius: 10px;
+  border: black 2px black;
+}
+
+.select-container select {
+  width: 100%;
+  margin-top: 1rem;
+  height: 3rem;
+  border-radius: 10px;
+  border: black 2px black;
+}
+
+.form-button {
+  background-color: gray;
+  margin-top: 2rem;
+  border-radius: 12px;
+  border: solid 2px;
+}
+
+.hidden {
+  display: none;
+}
+
+.active {
+  background-color: red;
+}
+
+.utter-check {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.utter-check-front, .utter-check-back {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    gap: 10px;
+}
+
+.utter-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+}
+
+.utter-item label {
+    margin: 0;
+}
+
+.excel-button {
+  background-color: green;
+  padding: 1rem;
+  border-radius: 12px;
+  border: solid 2px;
+  text-decoration: none;
+}
+
+.mobile-hidden {
+  display: none;
+}
+
+
+
+/*Finalizar vacas*/
+
+.finished-milk-discard-title {
+  background-color: var(--VerdeOscuro);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: solid 2px;
+  text-decoration: none;
+  margin-top: 2rem;
+  width: auto;
+  text-align: center;
+}
+
+.finished-milk-discard-title h1 {
+  color: rgb(255, 255, 255);
+  margin: 0;
+}
+
+
+.finished-milk-discard-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  margin: 2rem 0;
+}
+
+.finished-milk-discard-card {
+  background-color: var(--Naranja);
+  margin: 1rem;
+  border-radius: 12px;
+  border: solid 2px var(--VerdeOscuro);
+  padding: 1rem;
+  font-size: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.finished-milk-discard-card:hover {
+  transform: scale(1.05);
+  background-color: #ffc32c;
+}
+
+.finished-milk-discard-card h3 {
+  color: black;
+  font-family: "Futura Heavy", sans-serif;
+  margin-bottom: 0.5rem;
+}
+
+.finished-milk-discard-card p {
+  margin: 0.5rem 0;
+  color: black;
+}
+
+.finished-milk-discard-card p strong {
+  color: var(--VerdeOscuro);
+}
+
+.finalize-button {
+  background-color: var(--Lila);
+  padding: 0.5rem 1rem;
+  border-radius: 12px;
+  border: solid 2px;
+  color: white;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 18px;
+  display: block;
+  margin-top: 1rem;
+  width: 100%;
+  text-align: center;
+}
+
+.finalize-button:hover {
+  background-color: var(--LilaOscuro);
+}
+
+.no-cows-message {
+  background-color: var(--Naranja);
+  padding: 1rem;
+  border-radius: 12px;
+  border: solid 2px;
+  text-align: center;
+  font-size: 20px;
+  margin: 2rem 0;
+}
+
+@media (min-width: 720px) {
+  .add-page-button {
+    font-size: 24px;
+  }
+
+  .header-img {
+    width: 10%;
+    margin-right: 1rem;
+  }
+  .headerlogged-div h1 {
+    display: flex;
+  }
+  .utter-check {
+      align-items: center;
+  }
+
+  .utter-check-front, .utter-check-back {
+      flex-direction: row;
+      justify-content: center;
+      gap: 20px;
+      width: auto;
+  }
+
+  .utter-item {
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+  }
+  
+  .mobile-hidden {
+    display: block;
+  }
+}

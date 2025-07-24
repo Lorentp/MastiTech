@@ -1,0 +1,82 @@
+<div class="form-container">
+  <h1>Nuevo tratamiento</h1>
+<form id="add-treatment-form">
+
+    <label for="title">Nombre del tratamiento:</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="duration">Duración medicacion (turnos de 12 horas):</label>
+    <select id="duration" name="duration" required>
+        <option value="">Seleccione...</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+
+    <label for="milkDiscardTurns">Periodo de descarte de leche (turnos de 12 horas):</label>
+    <select id="milkDiscardTurns" name="milkDiscardTurns" required>
+        <option value="">Seleccione...</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+        <option value="11">11</option>
+        <option value="12">12</option>
+        <option value="13">13</option>
+        <option value="14">14</option>
+        <option value="15">15</option>
+        <option value="16">16</option>
+        <option value="17">17</option>
+        <option value="18">18</option>
+        <option value="19">19</option>
+        <option value="20">20</option>
+    </select>
+
+    <div id="medications-container">
+        <h3>Medicaciones</h3>
+        <div class="medication-entry">
+            <label>Medicación 1:</label>
+            <input type="text" name="medications[0][name]" required>
+            <label>Aplicar cada (turnos):</label>
+            <select name="medications[0][applyEveryTurns]" required>
+                <option value="">Seleccione...</option>
+                <option value="1">1 (cada 12 horas)</option>
+                <option value="2">2 (cada 24 horas)</option>
+                <option value="3">3 (cada 36 horas)</option>
+                <option value="4">4 (cada 48 horas)</option>
+            </select>
+            <label>Aplicar hasta el turno:</label>
+            <select name="medications[0][applyUntilTurn]" required>
+                <option value="">Seleccione...</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+            </select>
+            <button type="button" class="remove-medication">Eliminar</button>
+        </div>
+    </div>
+    <button type="button" id="add-medication">Agregar Medicación</button>
+
+    <button type="submit">Guardar Tratamiento</button>
+</form>
+</div>
