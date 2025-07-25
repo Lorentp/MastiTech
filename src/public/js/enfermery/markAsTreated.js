@@ -4,15 +4,16 @@ document.addEventListener("DOMContentLoaded", () => {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
             const button = form.querySelector("button[type=submit]");
+            const cowId = button.dataset.id;
             button.disabled = true;
 
             const formData = new FormData(form);
             const data = {
-                turn: formData.get("turn")
+                turn: formData.get("turn"),
             };
 
             try {
-                const response = await fetch(form.action, {
+                const response = await fetch(`/cow/mark-treated/${cowId}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(data)
@@ -40,7 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.log("Error submitting mark treated form:", error);
                 Swal.fire({
                     title: "Error",
-                    text: "Ocurrió un error al enviar el formulario",
+                    text: error,
                     icon: "error",
                     confirmButtonText: "OK"
                 });

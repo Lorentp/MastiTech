@@ -98,12 +98,13 @@ router.post("/delete/:cid", async (req, res) => {
     }
 })
 
-router.post("/mark-treated/:id", async (req, res) => {
+router.post("/mark-treated/:_id", async (req, res) => {
     try {
-        const { id } = req.params;
+        console.log('Ruta /mark-treated alcanzada! ID:', req.params.id, 'Body:', req.body, 'User ID:', req.session.user?._id);
+        const { _id } = req.params;
         const { turn } = req.body;
         const userId = req.session.user._id;
-        const cow = await cowManager.markCowAsTreated(id, parseInt(turn), userId);
+        const cow = await cowManager.markCowAsTreated(_id, parseInt(turn), userId);
         res.json({ success: true, cow });
     } catch (error) {
         console.log(`Error marking cow ${id} as treated:`, error);

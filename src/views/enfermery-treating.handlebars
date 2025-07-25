@@ -57,9 +57,9 @@
                     {{#with (lookup medicationSchedule (subtract currentTurn 1)) as |meds|}}
                         {{#if meds.length}}
                             <p>Este animal NO fue tratado en este turno ❌</p>
-                            <form action="/cow/mark-treated/{{this._id}}" method="POST" class="mark-treated-form">
-                                <input type="hidden" name="turn" value="{{this.currentTurn}}">
-                                <button type="submit" class="link-button mark-treated-cow" data-id="{{this._id}}">Marcar como tratado</button>
+                            <form action="/cow/mark-treated/{{../_id}}" method="POST" class="mark-treated-form">
+                                <input type="hidden" name="turn" value="{{../currentTurn}}">
+                                <button type="submit" class="link-button mark-treated-cow" data-id="{{../_id}}">Marcar como tratado</button>
                             </form>
                         {{/if}}
                     {{/with}}
