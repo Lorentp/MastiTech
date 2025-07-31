@@ -74,14 +74,14 @@ class CowManager {
                 startDate: { $exists: true },
                 endDate: { $exists: true },
                 treatment: { $exists: true },
-                finished: {$exists:false}
+                finished: false // Already fixed as per previous response
             });
             const milkDiscardCows = cows.map(cow => {
                 const cowObj = cow.toObject();
                 const currentTurn = this.calculateCurrentTurn(cowObj.startDate, cowObj.startTurn);
-                const endTurn = this.calculateEndTurn(cowObj.endDate, cowObj.startTurn);
+                const endTurn = this.calculateEndTurn(cowObj.startDate, cowObj.endDate, cowObj.startTurn);
                 const milkDiscardTurns = cowObj.treatment && cowObj.treatment.length > 0 ? cowObj.treatment[0].milkDiscardTurns || 0 : 0;
-                const totalTurns = endTurn + milkDiscardTurns;
+                const totalTurns = milkDiscardTurns; // Fix: Use milkDiscardTurns directly
                 const remainingDiscardTurns = Math.max(0, totalTurns - currentTurn + 1);
                 return {
                     ...cowObj,
@@ -99,7 +99,6 @@ class CowManager {
             throw error;
         }
     }
-
     async markCowAsTreated(cowId, turn, userId) {
         try {
             const cow = await CowModel.findOne({
@@ -332,19 +331,19 @@ class CowManager {
         start.set({ hour: startHour, minute: 0, second: 0 });
         const hoursDiff = now.diff(start, 'hours');
         const turnsDiff = Math.floor(hoursDiff / 12);
-        return Math.max(1, turnsDiff + 1);
+        return Math.max(1, turnsDiff);
     }
 
-    calculateEndTurn(endDate, startTurn) {
-        const now = moment().tz("America/Argentina/Buenos_Aires");
+    calculateEndTurn(startDate, endDate, startTurn) {
+        const start = moment(startDate).tz("America/Argentina/Buenos_Aires");
         const end = moment(endDate).tz("America/Argentina/Buenos_Aires");
         const startHour = startTurn === 'morning' ? 0 : 12;
+        start.set({ hour: startHour, minute: 0, second: 0 });
         end.set({ hour: startHour, minute: 0, second: 0 });
-        const hoursDiff = now.diff(end, 'hours');
+        const hoursDiff = end.diff(start, 'hours');
         const turnsDiff = Math.floor(hoursDiff / 12);
         return Math.max(1, turnsDiff + 1);
     }
-
 
     //Update animal
 
