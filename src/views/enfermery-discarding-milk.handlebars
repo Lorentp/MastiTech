@@ -6,44 +6,53 @@
     <a href="/liberar-leche" class="link-button">Animales para liberar</a>
 </nav>
 
-
 <h1>Vacas en Período de Descarte de Leche</h1>
+<p class="subtitle">Tratamientos terminados que siguen descartando leche.</p>
 
 {{#if milkDiscardCows.length}}
-    {{#each milkDiscardCows}}
-        <div class="treated-container">
-            <div>
-                <p class="cow">Nombre del animal: {{this.name}}</p>
+    <div class="discarding-milk-cards">
+        {{#each milkDiscardCows}}
+            <div class="finished-milk-discard-card discarding-milk-card">
+                <div class="card-header">
+                    <h3>{{this.name}}</h3>
+                    <span class="events-badge">Eventos: {{this.events}}</span>
+                </div>
+
+                <div class="card-body">
+                    <p><strong>Tratamiento:</strong> {{this.lastTreatmentSnapshot.title}}</p>
+                    <p><strong>Ubres tratadas:</strong> 
+                        {{#if this.lastTreatmentEntry.udders.length}}
+                            {{join this.lastTreatmentEntry.udders ", "}}
+                        {{else}}
+                            No especificado
+                        {{/if}}
+                    </p>
+                    <p><strong>Inicio tratamiento:</strong> {{formatDate this.lastTreatmentEntry.startDate}}</p>
+                    <p><strong>Turno de inicio:</strong> {{formatTurn this.lastTreatmentEntry.startTurn}}</p>
+                    <p><strong>Finalizó tratamiento:</strong> {{formatDate this.lastTreatmentEntry.endDate}}</p>
+                    <div class="discard-highlight">
+                        <p>
+                            <strong>Fin descarte leche:</strong>
+                            <span class="highlighted-date">{{formatDate this.endDateDiscardMilk}}</span>
+                        </p>
+                        <p class="remaining-turns">
+                            Turnos restantes: 
+                            <strong class="{{#if (lt this.remainingDiscardTurns 3)}}urgent{{else}}normal{{/if}}">
+                                {{this.remainingDiscardTurns}}
+                            </strong>
+                        </p>
+                    </div>
+                    <p class="current-turn-info">
+                        Turno actual del rodeo: <strong>{{this.currentTurn}}</strong>
+                    </p>
+                </div>
             </div>
-            <div>
-                <p class="treatment">Tratamiento: {{this.treatment.[0].title}}</p>
-            </div>
-            <div>
-                <p>Ubres afectadas: {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Ninguna{{/if}}</p>
-            </div>
-            <div>
-                <p>Cantidad de eventos: {{this.events}}</p>
-            </div>
-            <div>
-                <p>Empieza tratamiento el día: {{formatDate this.startDate}}</p>
-            </div>
-            <div>
-                <p>Empieza tratamiento en el turno: {{formatTurn this.startTurn}}</p>
-            </div>
-            <div>
-                <p>Finalizó tratamiento el día: {{formatDate this.endDate}}</p>
-            </div>
-            <div>
-                <p>Finaliza descarte de leche el día: {{formatDate this.endDateDiscardMilk}}</p>
-            </div>            
-            <div>
-                <p>Turno actual: {{this.currentTurn}}</p>
-            </div>
-            <div>
-                <p>Turnos restantes de descarte de leche: {{this.remainingDiscardTurns}}</p>
-            </div>
-        </div>
-    {{/each}}
+        {{/each}}
+    </div>
 {{else}}
-    <p class="no-cows-message">No hay vacas en período de descarte de leche actualmente.</p>
+    <div class="form-container">
+        <p class="no-cows-message">
+            ¡Excelente! No hay vacas en período de descarte de leche actualmente.
+        </p>
+    </div>
 {{/if}}

@@ -5,6 +5,7 @@ const CowManager = require("../managers/cows-manager")
 const TreatmentsManager = require("../managers/treatments-manager")
 const cowManager = new CowManager()
 const treatmentManager = new TreatmentsManager()
+const moment = require("moment-timezone")
 
 
 router.get("/registrar", async (req, res) => {
@@ -67,6 +68,25 @@ router.get("/descarte-leche", async (req, res) => {
         }
         const userId = req.session.user._id;
         const milkDiscardCows = await cowManager.getCowsInMilkDiscard(userId);
+
+        for (const cow of milkDiscardCows) {
+            const activeEntry = cow.treatmentsHistory.find(t => 
+                t.treatmentSnapshot && !t.finished
+            );
+            cow.currentTreatmentSnapshot = activeEntry?.treatmentSnapshot || null;
+            
+            // Calculamos turnos restantes
+            if (cow.currentTreatmentSnapshot) {
+                const start = moment(cow.startDate).tz("America/Argentina/Buenos_Aires");
+                const startHour = cow.startTurn === 'morning' ? 0 : 12;
+                start.set({ hour: startHour, minute: 0, second: 0 });
+                const hoursSinceStart = moment().diff(start, 'hours');
+                const currentTurn = Math.floor(hoursSinceStart / 12) + 1;
+                const totalDiscardTurns = cow.currentTreatmentSnapshot.milkDiscardTurns;
+                cow.remainingDiscardTurns = Math.max(0, totalDiscardTurns - currentTurn + 1);
+            }
+        }
+
         res.render("enfermery-discarding-milk", { milkDiscardCows});
     } catch (error) {
         console.log("Error fetching cows in treatment:", error);

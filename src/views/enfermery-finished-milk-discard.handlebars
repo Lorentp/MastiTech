@@ -15,17 +15,59 @@
     <div class="finished-milk-discard-cards">
         {{#each finishedMilkDiscardCows}}
             <div class="finished-milk-discard-card">
-                <p><strong>Carvana:</strong> {{name}}</p>
-                <p><strong>Fecha de Fin de Descarte:</strong> {{formatDate endDateDiscardMilk}}</p>
-                <p><strong>Turno inicio de Descarte:</strong> {{formatTurn startTurn}}</p>
-                <p><strong>Tratamiento:</strong> {{treatment.[0].title}}</p>
-                <button class="finalize-button" onclick="finalizeCow('{{_id}}')">Liberar animal</button>
+                <div class="card-header">
+                    <h3>{{this.name}}</h3>
+                    <span class="events-badge">Eventos: {{this.events}}</span>
+                </div>
+
+                <div class="card-body">
+                    <p><strong>Tratamiento:</strong> {{this.lastTreatmentSnapshot.title}}</p>
+                    <p><strong>Ubres tratadas:</strong> 
+                        {{#if this.lastTreatmentEntry.udders.length}}
+                            {{join this.lastTreatmentEntry.udders ", "}}
+                        {{else}}
+                            No especificado
+                        {{/if}}
+                    </p>
+                    <p><strong>Inicio tratamiento:</strong> {{formatDate this.lastTreatmentEntry.startDate}}</p>
+                    <p><strong>Finalizó tratamiento:</strong> {{formatDate this.lastTreatmentEntry.endDate}}</p>
+                    <p><strong>Fin descarte leche:</strong> 
+                        <strong class="success-text">
+                            {{formatDate this.lastTreatmentEntry.endDateDiscardMilk}}
+                        </strong>
+                    </p>
+                    <p class="liberation-date">
+                        Liberada el: 
+                        <strong>
+                            {{#if this.lastTreatmentEntry.milkDiscardCompletedAt}}
+                                {{formatDate this.lastTreatmentEntry.milkDiscardCompletedAt}}
+                            {{else}}
+                                Pendiente
+                            {{/if}}
+                        </strong>
+                    </p>
+                </div>
+
+                <div class="card-footer">
+                    {{#unless this.lastTreatmentEntry.milkDiscardCompletedAt}}
+                        <button 
+                            class="finalize-button" 
+                            onclick="finalizeCow('{{this._id}}')">
+                            Liberar
+                        </button>
+                    {{else}}
+                        <button class="finalize-button disabled" disabled>
+                            Ya liberada
+                        </button>
+                    {{/unless}}
+                </div>
             </div>
         {{/each}}
     </div>
 {{else}}
-    <p class="no-cows-message">No hay vacas que hayan terminado el descarte de leche pendientes de finalización.</p>
+    <p class="no-cows-message">
+        No hay vacas listas para liberar en este momento.
+    </p>
 {{/if}}
-
 
 <script src="/js/enfermery/finalizeCows.js"></script>

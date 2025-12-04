@@ -1,133 +1,106 @@
 let medicationCount = 1;
-document.getElementById('add-medication').addEventListener('click', () => {
-     const container = document.getElementById('medications-container');
-    const newEntry = document.createElement('div');
-    newEntry.className = 'medication-entry';
-    newEntry.innerHTML = `
-        <label>Medicación ${medicationCount + 1}:</label>
-        <input type="text" name="medications[${medicationCount}][name]" required>
+
+document.getElementById('add-medication')?.addEventListener('click', () => {
+    medicationCount++;
+    const container = document.getElementById('medications-container');
+    const div = document.createElement('div');
+    div.className = 'medication-entry';
+    div.innerHTML = `
+        <label>Medicación ${medicationCount}:</label>
+        <input type="text" name="medications[${medicationCount-1}][name]" required>
         <label>Aplicar cada (turnos):</label>
-        <select name="medications[${medicationCount}][applyEveryTurns]" required>
-            <option value="">Seleccione...</option>
-            <option value="1">1 (cada 12 horas)</option>
-            <option value="2">2 (cada 24 horas)</option>
-            <option value="3">3 (cada 36 horas)</option>
-            <option value="4">4 (cada 48 horas)</option>
+        <select name="medications[${medicationCount-1}][applyEveryTurns]" required>
+            <option value="">...</option>
+            <option value="1">1 (cada 12 hs)</option>
+            <option value="2">2 (cada 24 hs)</option>
+            <option value="3">3 (cada 36 hs)</option>
+            <option value="4">4 (cada 48 hs)</option>
         </select>
-        <label>Aplicar hasta el turno:</label>
-        <select name="medications[${medicationCount}][applyUntilTurn]" required>
-            <option value="">Seleccione...</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
-        </select>
+        <label>Hasta turno:</label>
+        <select name="medications[${medicationCount-1}][applyUntilTurn]" required></select>
         <button type="button" class="remove-medication">Eliminar</button>
     `;
-    container.appendChild(newEntry);
-    medicationCount++;
+    container.appendChild(div);
+    updateUntilTurnOptions(); // ← actualiza opciones
 });
 
-document.getElementById('medications-container').addEventListener('click', (e) => {
+document.getElementById('medications-container')?.addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-medication') && medicationCount > 1) {
         e.target.parentElement.remove();
         medicationCount--;
-        const entries = document.querySelectorAll('.medication-entry');
-        entries.forEach((entry, index) => {
-            entry.querySelector('label').textContent = `Medicación ${index + 1}:`;
-            entry.querySelector('input').name = `medications[${index}][name]`;
-            entry.querySelectorAll('select')[0].name = `medications[${index}][applyEveryTurns]`;
-            entry.querySelectorAll('select')[1].name = `medications[${index}][applyUntilTurn]`;
-        });
+        renumberMedications();
+        updateUntilTurnOptions();
     }
 });
 
-document.getElementById('add-treatment-form').addEventListener('submit', async (e) => {
+function renumberMedications() {
+    document.querySelectorAll('.medication-entry').forEach((entry, i) => {
+        entry.querySelector('label').textContent = `Medicación ${i + 1}:`;
+        entry.querySelector('input').name = `medications[${i}][name]`;
+        entry.querySelectorAll('select')[0].name = `medications[${i}][applyEveryTurns]`;
+        entry.querySelectorAll('select')[1].name = `medications[${i}][applyUntilTurn]`;
+    });
+}
+
+function updateUntilTurnOptions() {
+    const duration = parseInt(document.getElementById('duration').value) || 10;
+    document.querySelectorAll('select[name$="[applyUntilTurn]"]').forEach(select => {
+        const current = select.value;
+        select.innerHTML = '<option value="">Seleccione...</option>';
+        for (let i = 1; i <= duration; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.text = i;
+            if (i == current) opt.selected = true;
+            select.appendChild(opt);
+        }
+    });
+}
+
+document.getElementById('duration')?.addEventListener('change', updateUntilTurnOptions);
+
+document.getElementById('add-treatment-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = { medications: [] };
-    formData.forEach((value, key) => {
+
+    for (const [key, value] of formData.entries()) {
         if (key.startsWith('medications')) {
-            const match = key.match(/medications\[(\d+)\]\[(\w+)\]/);
-            if (match) {
-                const index = match[1];
-                const field = match[2];
-                if (!data.medications[index]) data.medications[index] = {};
-                data.medications[index][field] = value;
+            const matches = key.match(/medications\[(\d+)\]\[(.+)\]/);
+            if (matches) {
+                const idx = matches[1];
+                const field = matches[2];
+                if (!data.medications[idx]) data.medications[idx] = {};
+                data.medications[idx][field] = value;
             }
         } else {
             data[key] = value;
         }
-    });
+    }
+    data.medications = data.medications.filter(m => m && m.name);
 
-    // Validate applyUntilTurn <= duration
-    const duration = parseInt(data.duration, 10);
+    // Validación final
+    const duration = parseInt(data.duration);
     for (const med of data.medications) {
-        if (parseInt(med.applyUntilTurn, 10) > duration) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: `El turno final de ${med.name} no puede exceder la duración del tratamiento`,
-                confirmButtonText: 'OK'
-            });
-            return;
+        if (parseInt(med.applyUntilTurn) > duration) {
+            return Swal.fire('Error', `La medicación "${med.name}" no puede aplicarse hasta un turno mayor a la duración del tratamiento`, 'error');
         }
     }
 
     try {
-        const response = await fetch('/treatment/add', {
+        const res = await fetch('/treatment/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        const result = await response.json();
-        if (result.success) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Éxito',
-                text: 'Tratamiento creado con éxito',
-                confirmButtonText: 'OK'
-            }).then(() => {
-                window.location.reload();
-            });
+        const json = await res.json();
+        if (json.success) {
+            Swal.fire('¡Listo!', 'Tratamiento creado correctamente', 'success')
+                .then(() => location.reload());
         } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: result.message,
-                confirmButtonText: 'OK'
-            });
+            Swal.fire('Error', json.message, 'error');
         }
-    } catch (error) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error, intentelo nuevamente',
-            confirmButtonText: 'OK'
-        });
-        console.log(error);
-        }
-    });
-
-// Update applyUntilTurn options based on duration
-document.getElementById('duration').addEventListener('change', () => {
-    const duration = parseInt(document.getElementById('duration').value, 10);
-    const applyUntilSelects = document.querySelectorAll('select[name$="[applyUntilTurn]"]');
-    applyUntilSelects.forEach(select => {
-        const currentValue = select.value;
-        select.innerHTML = '<option value="">Seleccione...</option>';
-        for (let i = 1; i <= duration; i++) {
-            const option = document.createElement('option');
-            option.value = i;
-            option.text = i;
-            if (i === parseInt(currentValue, 10)) option.selected = true;
-            select.appendChild(option);
-        }
-    });
+    } catch (err) {
+        Swal.fire('Error', 'No se pudo guardar el tratamiento', 'error');
+    }
 });

@@ -25,6 +25,7 @@ const hbs = expressHandlebars.create({
         allowProtoMethodsByDefault: true,
     },
     helpers: {
+        lt: function(a,b){ return a < b },
         formatDate: function (date) {
       const today = moment()
         .tz("America/Argentina/Buenos_Aires")

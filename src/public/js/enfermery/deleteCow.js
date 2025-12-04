@@ -21,23 +21,48 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
 
             const cid = idInputDeleteCow.value;
+            const cowName = nameDeleteCow.value;
             if (!cid) {
                 console.error("No cow ID provided");
                 return;
             }
 
-            fetch(`/cow/delete/${cid}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            })
-                .then(response => {
-                    window.location.href = "/home";
+            const confirmDeletion = () => {
+                return Swal.fire({
+                    icon: "warning",
+                    title: "Confirmar eliminación",
+                    text: `¿Eliminar al animal "${cowName}"?`,
+                    showCancelButton: true,
+                    confirmButtonText: "Sí, eliminar",
+                    cancelButtonText: "Cancelar"
+                });
+            };
+
+            const hasSwal = typeof Swal !== "undefined";
+            (hasSwal ? confirmDeletion() : Promise.resolve({ isConfirmed: true }))
+                .then(result => {
+                    if (!result.isConfirmed) return;
+
+                    return fetch(`/cow/delete/${cid}`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    });
+                })
+                .then(response => response ? response.json() : null)
+                .then(result => {
+                    if (!result) return;
+                    if (result.success) {
+                        Swal.fire("Eliminado", `Animal "${cowName}" eliminado con éxito`, "success")
+                            .then(() => window.location.href = "/home");
+                    } else {
+                        Swal.fire("Error", result.message || "No se pudo eliminar el animal", "error");
+                    }
                 })
                 .catch(error => {
                     console.error("Error:", error);
-                    alert("Error al eliminar el animal: " + error.message);
+                    Swal.fire("Error", "Error al eliminar el animal: " + error.message, "error");
                 });
         });
     });

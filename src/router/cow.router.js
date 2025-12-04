@@ -10,59 +10,61 @@ const moment = require("moment-timezone")
 
 
 router.post("/add", async (req, res) => {
-    try {       
+    try {
         const owner = req.session.user._id;
-        const { name, severity , udders, startDate, endDate, startTurn, treatmentId, confirmReMastitis} = req.body;
 
-        if (!mongoose.Types.ObjectId.isValid(treatmentId)) {
-            throw new Error("Invalid treatmentId format");
+        // ← CORREGIDO: req.body, NO body
+        const { 
+            name, 
+            severity, 
+            udders, 
+            startDate, 
+            startTurn, 
+            treatmentId, 
+            confirmReMastitis = false 
+        } = req.body;
+
+        // Validación básica
+        if (!name || !treatmentId || !startDate || !startTurn) {
+            return res.status(400).json({
+                success: false,
+                message: "Faltan datos obligatorios"
+            });
         }
 
-
-        const treatment = await treatmentsManager.getTreatmentsById(treatmentId);
-        if (!treatment) throw new Error("Treatment not found");
-
-        const newStartDate = moment(startDate).tz("America/Argentina/Buenos_Aires").add(0, "hours").toDate();
-        const newEndDate = moment(endDate).tz("America/Argentina/Buenos_Aires").add(0, "hours").toDate();
-        const yesterday = moment(startDate).tz("America/Argentina/Buenos_Aires").subtract(1, "day").toDate();
-
-
-        const newCow = {
+        const result = await cowManager.addCowToTreatment({
             name,
+            udders: Array.isArray(udders) ? udders : [udders],
             severity,
-            startDate: newStartDate,
-            endDate: newEndDate,
-            owner,
+            startDate,
             startTurn,
-            lastDayTreated: yesterday,
             treatmentId,
-            udders: udders ? (Array.isArray(udders) ? udders : [udders]) : [],
-            confirmReMastitis: !!confirmReMastitis // Ensure boolean
-        };
-        const result = await cowManager.addCowToTreatment(newCow);
+            owner,
+            confirmReMastitis
+        });
 
-        if (result.cow) {
-            res.status(200).json({
-                success: true,
-                message: "Animal agregado a tratamiento con exito",
-                reMastitisWarning: result.reMastitisWarning,
-                currentTurn: cowManager.calculateCurrentTurn(newCow.startDate, newCow.startTurn)
-            });
-        } else {
-            res.status(200).json({
+        if (result.reMastitisWarning && !confirmReMastitis) {
+            return res.status(200).json({
                 success: false,
                 reMastitisWarning: result.reMastitisWarning
             });
         }
+
+        res.status(200).json({
+            success: true,
+            message: "Animal agregado a tratamiento con éxito",
+            cow: result.cow,
+            currentTurn: result.cow.currentTurn
+        });
+
     } catch (error) {
+        console.error("Error al agregar vaca a tratamiento:", error);
         res.status(500).json({
             success: false,
-            message: "Error, intentelo nuevamente"
+            message: error.message || "Error interno del servidor"
         });
-        console.log(error);
     }
 });
-
 
 
 router.post("/update:cid", async (req, res) => {
@@ -86,7 +88,8 @@ router.post("/update:cid", async (req, res) => {
 
 router.post("/delete/:cid", async (req, res) => {
     try {
-        const result = await cowManager.deleteCow(req.params.cid)
+        const owner = req.session.user._id;
+        const result = await cowManager.deleteCow(req.params.cid, owner);
 
         if(result.success){
             res.status(200).json(result)
@@ -100,28 +103,38 @@ router.post("/delete/:cid", async (req, res) => {
 
 router.post("/mark-treated/:_id", async (req, res) => {
     try {
-        console.log('Ruta /mark-treated alcanzada! ID:', req.params.id, 'Body:', req.body, 'User ID:', req.session.user?._id);
         const { _id } = req.params;
         const { turn } = req.body;
         const userId = req.session.user._id;
-        const cow = await cowManager.markCowAsTreated(_id, parseInt(turn), userId);
-        res.json({ success: true, cow });
+
+        const result = await cowManager.markCowAsTreated(_id, parseInt(turn), userId);
+
+        res.json({
+            success: true,
+            cow: result.cow,
+            currentTurn: result.cow.currentTurn,
+            medicationSchedule: result.cow.medicationSchedule
+        });
     } catch (error) {
-        console.log(`Error marking cow ${id} as treated:`, error);
         res.status(400).json({ success: false, message: error.message });
     }
 });
 
-router.post("/finalize-milk-discard/:id", async (req,res) => {
+router.post("/finalize-milk-discard/:id", async (req, res) => {
     try {
-        const {id} = req.params
-        const userId = req.session.user._id
-        const cow = await cowManager.finalizeMilkDiscard(id, userId)
-        res.json({success: true, cow})
-    } catch (error) {   
-        console.log(`Error finalizing milk discard for cow ${id}:`, error);
-        res.status(400).json({success: false, message: error.message})
+        const { id } = req.params;
+        const userId = req.session.user._id;
+
+        const result = await cowManager.finalizeMilkDiscard(id, userId);
+
+        res.json({
+            success: true,
+            cow: result.cow,
+            message: "Descarte de leche finalizado"
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
     }
-})
+});
 
 module.exports = router

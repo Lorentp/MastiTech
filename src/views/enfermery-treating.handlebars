@@ -7,119 +7,108 @@
 </nav>
 
 <h1>Animales en Tratamiento</h1>
+
 <h2>Vacas no tratadas en el turno actual</h2>
 {{#if untreatedCows.length}}
     {{#each untreatedCows}}
-        <div class="treated-container">
+        <div class="treated-container {{#if this.reMastitisInfo}}re-mastitis-card{{/if}}">
+            <div><p class="cow">Nombre del animal: {{this.name}}</p></div>
+            {{#if this.reMastitisInfo}}
+                <p class="remastitis-badge">
+                    RE-MASTITIS - Tratamiento previo: {{this.reMastitisInfo.previousTreatment}}
+                    (finalizó {{formatDate this.reMastitisInfo.previousEndDate}}) - Reinicio a los {{this.reMastitisInfo.daysSinceEnd}} días
+                </p>
+            {{/if}}
+            <div><p class="treatment">Tratamiento: {{this.currentTreatmentSnapshot.title}}</p></div>
             <div>
-                <p class="cow">Nombre del animal: {{this.name}}</p>
-            </div>
-            <div>
-                <p class="treatment">Tratamiento: {{this.treatment.[0].title}}</p>
-            </div>
-            <div>
-                <p>Ubres afectadas: {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Ninguna{{/if}}</p>
-            </div>
-            <div>
-                <p>Cantidad de eventos: {{this.events}}</p>
-            </div>
-            <div>
-                <p>Empieza tratamiento el día: {{formatDate this.startDate}}</p>
-            </div>
-            <div>
-                <p>Empieza tratamiento en el turno: {{formatTurn this.startTurn}}</p>
-            </div>
-            <div>
-                <p>Finaliza tratamiento el día: {{formatDate this.endDate}}</p>
-            </div>
-            <div>
-                <p>Turno actual: {{this.currentTurn}}</p>
-            </div>
-            <div>
-                <p>Medicación para el turno actual: 
-                    {{#if medicationSchedule}}
-                        {{#with (lookup medicationSchedule (subtract currentTurn 1)) as |meds|}}
-                            {{#if meds.length}}
-                                {{join meds ", "}}
-                            {{else}}
-                                Sin medicación ✅
-                            {{/if}}
-                        {{else}}
-                            Sin medicación ✅
-                        {{/with}}
+                <p>Ubres afectadas: 
+                    {{#if this.currentTreatmentEntry.udders.length}}
+                        {{join this.currentTreatmentEntry.udders ", "}}
                     {{else}}
-                        Sin medicación ✅
+                        Ninguna
                     {{/if}}
                 </p>
             </div>
+            <div><p>Cantidad de eventos: {{this.events}}</p></div>
+            <div><p>Empieza tratamiento el día: {{formatDate this.currentTreatmentEntry.startDate}}</p></div>
+            <div><p>Empieza tratamiento en el turno: {{formatTurn this.currentTreatmentEntry.startTurn}}</p></div>
+            <div><p>Finaliza tratamiento el día: {{formatDate this.currentTreatmentEntry.endDate}}</p></div>
+            <div><p>Turno actual: {{this.currentTurn}}</p></div>
             <div>
-                {{#if medicationSchedule}}
-                    {{#with (lookup medicationSchedule (subtract currentTurn 1)) as |meds|}}
-                        {{#if meds.length}}
-                            <p>Este animal NO fue tratado en este turno ❌</p>
-                            <form action="/cow/mark-treated/{{../_id}}" method="POST" class="mark-treated-form">
-                                <input type="hidden" name="turn" value="{{../currentTurn}}">
-                                <button type="submit" class="link-button mark-treated-cow" data-id="{{../_id}}">Marcar como tratado</button>
-                            </form>
-                        {{/if}}
-                    {{/with}}
-                {{/if}}
-            </div>
-        </div>
-    {{/each}}
-{{else}}
-   <div class="form-container">
-    <p class="no-cows-message">No hay vacas no tratadas en el turno actual.</p>
-   </div>
-{{/if}}
-
-<h2>Vacas tratadas en el turno actual</h2>
-{{#if treatedCows.length}}
-    {{#each treatedCows}}
-        <div class="treated-container">
-            <div>
-                <p class="cow">Nombre del animal: {{this.name}}</p>
-            </div>
-            <div>
-                <p class="treatment">Tratamiento: {{this.treatment.[0].title}}</p>
-            </div>
-            <div>
-                <p>Ubres afectadas: {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Ninguna{{/if}}</p>
-            </div>
-            <div>
-                <p>Cantidad de eventos: {{this.events}}</p>
-            </div>
-            <div>
-                <p>Empieza tratamiento el día: {{formatDate this.startDate}}</p>
-            </div>
-            <div>
-                <p>Empieza tratamiento en el turno: {{formatTurn this.startTurn}}</p>
-            </div>
-            <div>
-                <p>Finaliza tratamiento el día: {{formatDate this.endDate}}</p>
-            </div>
-            <div>
-                <p>Turno actual: {{this.currentTurn}}</p>
-            </div>
-            <div>
-                <p>Medicación para el turno actual: 
-                    {{#with (lookup medicationSchedule (subtract currentTurn 1)) as |meds|}}
+                <p>Medicación para el turno actual:
+                    {{#with (lookup this.medicationSchedule (subtract this.currentTurn 1)) as |meds|}}
                         {{#if meds.length}}
                             {{join meds ", "}}
                         {{else}}
                             Sin medicación
                         {{/if}}
+                    {{else}}
+                        Sin medicación
                     {{/with}}
                 </p>
             </div>
-            <p>Este animal fue tratado en este turno ✅</p>
+            <div>
+                {{#with (lookup this.medicationSchedule (subtract this.currentTurn 1)) as |meds|}}
+                    {{#if meds.length}}
+                        <form class="mark-treated-form">
+                            <input type="hidden" name="turn" value="{{../../currentTurn}}">
+                            <button type="submit" class="link-button mark-treated-cow" data-id="{{../_id}}">
+                                Marcar como tratado
+                            </button>
+                        </form>
+                    {{/if}}
+                {{/with}}
+            </div>
         </div>
     {{/each}}
 {{else}}
     <div class="form-container">
-    <p>No hay vacas tratadas en el turno actual.</p>
+        <p class="no-cows-message">No hay vacas no tratadas en el turno actual.</p>
+    </div>
+{{/if}}
+
+<h2>Vacas tratadas en el turno actual</h2>
+{{#if treatedCows.length}}
+    {{#each treatedCows}}
+        <div class="treated-container {{#if this.reMastitisInfo}}re-mastitis-card{{/if}}">
+            <div><p class="cow">Nombre del animal: {{this.name}}</p></div>
+            {{#if this.reMastitisInfo}}
+                <p class="remastitis-badge">
+                    RE-MASTITIS - Tratamiento previo: {{this.reMastitisInfo.previousTreatment}}
+                    (finalizó {{formatDate this.reMastitisInfo.previousEndDate}}) - Reinicio a los {{this.reMastitisInfo.daysSinceEnd}} días
+                </p>
+            {{/if}}
+            <div><p class="treatment">Tratamiento: {{this.currentTreatmentSnapshot.title}}</p></div>
+            <div>
+                <p>Ubres afectadas: 
+                    {{#if this.currentTreatmentEntry.udders.length}}
+                        {{join this.currentTreatmentEntry.udders ", "}}
+                    {{else}}
+                        Ninguna
+                    {{/if}}
+                </p>
+            </div>
+            <div><p>Cantidad de eventos: {{this.events}}</p></div>
+            <div><p>Empieza tratamiento el día: {{formatDate this.currentTreatmentEntry.startDate}}</p></div>
+            <div><p>Empieza tratamiento en el turno: {{formatTurn this.currentTreatmentEntry.startTurn}}</p></div>
+            <div><p>Finaliza tratamiento el día: {{formatDate this.currentTreatmentEntry.endDate}}</p></div>
+            <div><p>Turno actual: {{this.currentTurn}}</p></div>
+            <div>
+                <p>Medicación aplicada en este turno:
+                    {{#with (lookup this.medicationSchedule (subtract this.currentTurn 1)) as |meds|}}
+                        {{#if meds.length}}{{join meds ", "}}{{else}}Sin medicación{{/if}}
+                    {{else}}
+                        Sin medicación
+                    {{/with}}
+                </p>
+            </div>
+            <p class="success-text">Este animal ya fue tratado en este turno</p>
+        </div>
+    {{/each}}
+{{else}}
+    <div class="form-container">
+        <p>No hay vacas tratadas en el turno actual.</p>
     </div>
 {{/if}}
 
 <script src="/js/enfermery/markAsTreated.js"></script>
-<script src="/js/enfermery/markAsDead.js"></script>

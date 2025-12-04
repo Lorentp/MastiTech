@@ -1,381 +1,446 @@
 const CowModel = require("../models/cow.model")
 const mongoose = require("mongoose")
-const TreatmentsModel = require("../models/treatment.model")
+const TreatmentModel = require("../models/treatment.model")
 const TreatmentsManager = require("../managers/treatments-manager")
+const treatmentsManager = new TreatmentsManager();
 const moment = require("moment-timezone")
 
 class CowManager {
 
-    //Get animals
-    async getCows(userId) {
-        try {
-            const cows = await CowModel.find({ owner: userId });
-            return cows.map(cow => ({
-                ...cow.toObject(),
-                currentTurn: this.calculateCurrentTurn(cow.startDate, cow.startTurn)
-            }));
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
+    // Obtener el tratamiento actual de una vaca (último no finalizado)
+    getCurrentTreatmentEntry(cow) {
+        const history = Array.isArray(cow.treatmentsHistory) ? cow.treatmentsHistory : [];
+        const active = history.filter(t => !t.finished).sort((a, b) => b.startDate - a.startDate)[0];
+        return active || null;
     }
 
-
-    //Get cows in treatment
-    async getCowsInTreatment(userId) {
-        try {
-            const startOfToday = moment().tz("America/Argentina/Buenos_Aires").startOf("day").toDate();
-            const endOfToday = moment().tz("America/Argentina/Buenos_Aires").endOf("day").toDate();
-            const cows = await CowModel.find({
-                owner: new mongoose.Types.ObjectId(userId),
-                endDate: { $gte: startOfToday },
-                startDate: { $lte: endOfToday },
-                finished: false
-            });
-            const untreatedCows = [];
-            const treatedCows = [];
-            cows.forEach(cow => {
-                const cowObj = cow.toObject();
-                const currentTurn = this.calculateCurrentTurn(cowObj.startDate, cowObj.startTurn);
-                let medicationSchedule = [];
-                if (cowObj.treatment && cowObj.treatment.length > 0) {
-                    try {
-                        medicationSchedule = TreatmentsManager.generateMedicationSchedule(cowObj.treatment[0]);
-                    } catch (error) {
-                        console.log(`Error generating medication schedule for cow ${cowObj.name}:`, error);
-                    }
-                }
-                // Clear treatedTurns older than currentTurn
-                cowObj.treatedTurns = (cowObj.treatedTurns || []).filter(turn => turn === currentTurn);
-                const cowData = {
-                    ...cowObj,
-                    currentTurn,
-                    medicationSchedule
-                };
-                if (cowObj.treatedTurns && cowObj.treatedTurns.includes(currentTurn)) {
-                    treatedCows.push(cowData);
-                } else {
-                    untreatedCows.push(cowData);
-                }
-            });
-
-            return { untreatedCows, treatedCows };
-        } catch (error) {
-            console.log("Error fetching cows in treatment:", error);
-            throw error;
-        }
-    }
-
-    async getCowsInMilkDiscard(userId) {
-        try {
-            const now = moment().tz("America/Argentina/Buenos_Aires");
-            const cows = await CowModel.find({
-                owner: new mongoose.Types.ObjectId(userId),
-                startDate: { $exists: true },
-                endDate: { $exists: true },
-                treatment: { $exists: true },
-                finished: false // Already fixed as per previous response
-            });
-            const milkDiscardCows = cows.map(cow => {
-                const cowObj = cow.toObject();
-                const currentTurn = this.calculateCurrentTurn(cowObj.startDate, cowObj.startTurn);
-                const endTurn = this.calculateEndTurn(cowObj.startDate, cowObj.endDate, cowObj.startTurn);
-                const milkDiscardTurns = cowObj.treatment && cowObj.treatment.length > 0 ? cowObj.treatment[0].milkDiscardTurns || 0 : 0;
-                const totalTurns = milkDiscardTurns; // Fix: Use milkDiscardTurns directly
-                const remainingDiscardTurns = Math.max(0, totalTurns - currentTurn + 1);
-                return {
-                    ...cowObj,
-                    currentTurn,
-                    endTurn,
-                    remainingDiscardTurns
-                };
-            }).filter(cow => {
-                const shouldInclude = cow.currentTurn > cow.endTurn && cow.remainingDiscardTurns > 0;
-                return shouldInclude;
-            });
-            return milkDiscardCows;
-        } catch (error) {
-            console.log("Error fetching cows in milk discard:", error);
-            throw error;
-        }
-    }
-    async markCowAsTreated(cowId, turn, userId) {
-        try {
-            const cow = await CowModel.findOne({
-                _id: new mongoose.Types.ObjectId(cowId),
-                owner: new mongoose.Types.ObjectId(userId),
-                finished: false
-            });
-            if (!cow) {
-                throw new Error("Cow not found or not in treatment");
-            }
-            const currentTurn = this.calculateCurrentTurn(cow.startDate, cow.startTurn);
-            if (turn !== currentTurn) {
-                throw new Error(`Cannot mark turn ${turn} as treated; current turn is ${currentTurn}`);
-            }
-            if (!cow.treatedTurns) {
-                cow.treatedTurns = [];
-            }
-            if (!cow.treatedTurns.includes(turn)) {
-                cow.treatedTurns.push(turn);
-                await cow.save();
-            }
-            return {
-                ...cow.toObject(),
-                currentTurn,
-                medicationSchedule: cow.treatment && cow.treatment.length > 0
-                    ? TreatmentsManager.generateMedicationSchedule(cow.treatment[0])
-                    : []
-            };
-        } catch (error) {
-            console.log(`Error marking cow ${cowId} as treated for turn ${turn}:`, error);
-            throw error;
-        }
-    }
-
-
-    //Get cow to finish
-
-    async getFinishedMilkDiscardCows (userId){
-        try {
-            const now = moment().tz("America/Argentina/Buenos_Aires").toDate()
-            const cows = await CowModel.find({
-                owner: new mongoose.Types.ObjectId(userId),
-                finished : false
-            })
-
-            const finishedCows = cows.filter(cow => {
-                const endDiscard = moment(cow.endDateDiscardMilk).tz("America/Argentina/Buenos_Aires");
-                if (endDiscard.isBefore(now)) {
-                    return true; 
-                }
-                if (endDiscard.isSame(now, 'day')) {
-                    const endTurnHour = cow.startTurn === 'morning' ? 0 : 12; 
-                    const endHour = endDiscard.hour();
-                    const currentHour = now.hour();
-                    return currentHour >= endHour + 12; 
-                }
-            return false;
-            }); 
-
-            return finishedCows.map(cow => ({
-                ...cow.toObject(),
-                currentTurn: this.calculateCurrentTurn(cow.startDate, cow.startTurn)
-            }))
-        } catch (error) {
-            console.log("Error fetching finished milk discard cows:", error)
-            throw error
-        }
-    }
-
-    async finalizeMilkDiscard(cowId, userId) {
-        try {
-            const cow = await CowModel.findOne({
-                _id: new mongoose.Types.ObjectId(cowId),
-                owner:  new mongoose.Types.ObjectId(userId),
-                finished: false
-            })
-            if(!cow){
-                throw new Error("cow not found or already finished")
-            }
-
-            const now = moment().tz("America/Argentina/Buenos_Aires").toDate()
-            cow.finished = true
-            cow.milkDiscardCompletionDate = now
-            await cow.save()
-
-            return {
-                ...cow.toObject(),
-                currentTurn: this.calculateCurrentTurn(cow.startDate, cow.startTurn)
-            }
-        } catch (error) {
-            console.log(`Error finalizing milk discard for cow ${cowId}:`, error)
-            throw error
-        }
-    }
-
-
-    //Animal to treatment
-    async addCowToTreatment({
-        name,
-        treatmentId,
-        udders,
-        severity,
-        startDate,
-        startTurn,
-        owner,
-        endDate,
-        lastDayTreated,
-        confirmReMastitis = false
-    }) {
-        try {
-            const treatment = await TreatmentsModel.findOne({
-                _id: new mongoose.Types.ObjectId(treatmentId),
-                owner: new mongoose.Types.ObjectId(owner)
-            });
-           
-
-            const cowExist = await CowModel.findOne({ owner: new mongoose.Types.ObjectId(owner), name });
-            const fourteenDaysAgo = moment().subtract(14, "days").toDate();
-            let reMastitisWarning = null;
-
-            const start = moment(startDate).tz("America/Argentina/Buenos_Aires");
-            const startHour = startTurn === 'morning' ? 0 : 12;
-            start.set({ hour: startHour, minute: 0, second: 0 });
-            const endDateDiscardMilk = moment(start).add(treatment.milkDiscardTurns * 12, "hours").toDate();
-            const daysInHospital = moment(endDateDiscardMilk).diff(start, "days") 
-
-            if (!udders || !Array.isArray(udders) || udders.length === 0) {
-                console.warn(`No valid udders provided for cow ${name}, defaulting to []`);
-                udders = [];
-            }
-
-            if (cowExist) {
-                const previousTreatment = cowExist.lastTreatedTreatments.find(t => t.endDate >= fourteenDaysAgo && t.treatmentId.toString() === treatmentId);
-                if (previousTreatment) {
-                    reMastitisWarning = {
-                        message: `ATENCION RE-MASTITIS: Esta vaca fue tratada recientemente con ${previousTreatment.title}. El tratamiento elegido es ${treatment.title}. Se recomienda usar un tratamiento diferente.`,
-                        previousTreatment: previousTreatment.title,
-                        currentTreatment: treatment.title
-                    };
-                }
-            }
-
-            if (reMastitisWarning && !confirmReMastitis) {
-                return {
-                    cow: null,
-                    reMastitisWarning
-                };
-            }
-
-            let cowToReturn = null;
-
-            if (cowExist) {
-                cowExist.treatment = [{
-                    title: treatment.title,
-                    duration: treatment.duration,
-                    medications: treatment.medications,
-                    milkDiscardTurns: treatment.milkDiscardTurns,
-                    startDate: startDate
-                }];
-                cowExist.udders = udders;
-                cowExist.events = (cowExist.events) + 1; // Increment events
-                cowExist.startDate = startDate;
-                cowExist.startTurn = startTurn;
-                cowExist.endDate = endDate;
-                cowExist.severity = severity;
-                cowExist.endDateDiscardMilk = endDateDiscardMilk;
-                cowExist.daysInHospital = daysInHospital;
-                cowExist.treatedTurns = []; // Initialize treatedTurns
-                cowExist.lastDayTreated = lastDayTreated;
-                cowExist.resetTreatment = false;
-                cowExist.lastTreatedTreatments.push({
-                    treatmentId: new mongoose.Types.ObjectId(treatmentId),
-                    title: treatment.title,
-                    endDate
-                });
-
-                await cowExist.save();
-                cowToReturn = {
-                    ...cowExist.toObject(),
-                    currentTurn: this.calculateCurrentTurn(cowExist.startDate, cowExist.startTurn),
-                    medicationSchedule: TreatmentsManager.generateMedicationSchedule(cowExist.treatment[0])
-                };
-            } else {
-                const newCow = new CowModel({
-                    name,
-                    treatment: [{
-                        title: treatment.title,
-                        duration: treatment.duration,
-                        medications: treatment.medications,
-                        milkDiscardTurns: treatment.milkDiscardTurns,
-                        startDate: startDate
-                    }],
-                    udders,
-                    events: 1,
-                    startDate,
-                    severity,
-                    startTurn,
-                    endDate,
-                    daysInHospital,
-                    endDateDiscardMilk,
-                    owner: new mongoose.Types.ObjectId(owner),
-                    treatedTurns: [],
-                    lastDayTreated,
-                    lastTreatedTreatments: [{ treatmentId: new mongoose.Types.ObjectId(treatmentId), title: treatment.title, endDate }]
-                });
-
-                await newCow.save();
-                cowToReturn = {
-                    ...newCow.toObject(),
-                    currentTurn: this.calculateCurrentTurn(newCow.startDate, newCow.startTurn),
-                    medicationSchedule: TreatmentsManager.generateMedicationSchedule(newCow.treatment[0])
-                };
-            }
-
-            return {
-                cow: cowToReturn,
-                reMastitisWarning
-            };
-        } catch (error) {
-            console.log("Error in addCowToTreatment:", error);
-            throw error;
-        }
-    }
-
-    // Calculate turn
+    // Calcular turno actual
     calculateCurrentTurn(startDate, startTurn) {
         const now = moment().tz("America/Argentina/Buenos_Aires");
         const start = moment(startDate).tz("America/Argentina/Buenos_Aires");
         const startHour = startTurn === 'morning' ? 0 : 12;
         start.set({ hour: startHour, minute: 0, second: 0 });
         const hoursDiff = now.diff(start, 'hours');
-        const turnsDiff = Math.floor(hoursDiff / 12);
-        return Math.max(1, turnsDiff);
+        return Math.max(1, Math.floor(hoursDiff / 12) + 1);
     }
 
-    calculateEndTurn(startDate, endDate, startTurn) {
-        const start = moment(startDate).tz("America/Argentina/Buenos_Aires");
-        const end = moment(endDate).tz("America/Argentina/Buenos_Aires");
-        const startHour = startTurn === 'morning' ? 0 : 12;
-        start.set({ hour: startHour, minute: 0, second: 0 });
-        end.set({ hour: startHour, minute: 0, second: 0 });
-        const hoursDiff = end.diff(start, 'hours');
-        const turnsDiff = Math.floor(hoursDiff / 12);
-        return Math.max(1, turnsDiff + 1);
-    }
-
-    //Update animal
-
-    async updateCow(id, updatedCowData) {
+    // Agregar vaca a tratamiento (NUEVA LÓGICA)
+    async addCowToTreatment({
+        name,
+        udders,
+        severity,
+        startDate,
+        startTurn,
+        treatmentId,
+        owner,
+        confirmReMastitis = false
+    }) {
         try {
-            const updatedCow = await CowModel.findByIdAndUpdate(
-                id,
-                updatedCowData,
-                { new: true }
-            );
-            return {
-                ...updatedCow.toObject(),
-                currentTurn: this.calculateCurrentTurn(updatedCow.startDate, updatedCow.startTurn)
-            };
+        // 1. Buscamos el tratamiento original (para sacar los datos)
+        const treatment = await TreatmentModel.findOne({
+            _id: treatmentId,
+            owner
+        });
+
+        if (!treatment) {
+            throw new Error("Tratamiento no encontrado o no pertenece al usuario");
+        }
+
+        // 2. Parseamos fechas y calculamos todo
+        const start = moment(startDate).tz("America/Argentina/Buenos_Aires");
+        const startHour = startTurn === "morning" ? 0 : 12;
+        start.set({ hour: startHour, minute: 0, second: 0, millisecond: 0 });
+
+        const startDateWithTurn = start.toDate();
+        const endDate = moment(start).add(treatment.duration * 12, "hours").toDate();
+        const endDateDiscardMilk = moment(start).add(treatment.milkDiscardTurns * 12, "hours").toDate();
+
+        // 3. Buscamos si la vaca ya existe
+        let cow = await CowModel.findOne({ owner, name: name.trim().toUpperCase() });
+
+        // 4. RE-MASTITIS: chequeamos si ya tuvo un tratamiento en los últimos 14 días
+        let reMastitisWarning = null;
+        let isReMastitis = false;
+        let reMastitisMeta = null;
+        if (cow) {
+            // Buscamos el ultimo tratamiento finalizado para usar la fecha real de fin de medicacion
+            const recentEntry = (cow.treatmentsHistory || [])
+                .filter(t => t.endDate)
+                .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))[0];
+
+            if (recentEntry?.endDate) {
+                const daysSinceEnd = moment(startDateWithTurn).diff(moment(recentEntry.endDate), "days", true);
+                if (daysSinceEnd < 14) {
+                    isReMastitis = true;
+                    reMastitisMeta = {
+                        previousTreatment: recentEntry.treatmentSnapshot?.title || "Tratamiento previo",
+                        previousTreatmentEndDate: recentEntry.endDate,
+                        daysSinceEnd: Math.max(0, Math.floor(daysSinceEnd))
+                    };
+                    if (!confirmReMastitis) {
+                        reMastitisWarning = {
+                            message: `RE-MASTITIS: este animal terminó "${reMastitisMeta.previousTreatment}" el ${moment(recentEntry.endDate).format("DD/MM/YYYY")} y se está reiniciando a los ${Math.max(0, Math.floor(daysSinceEnd))} días. Confirmar para continuar.`,
+                            ...reMastitisMeta
+                        };
+                        return { cow: null, reMastitisWarning };
+                    }
+                }
+            }
+        }
+
+        // 5. CREAR O ACTUALIZAR VACA
+        if (!cow) {
+            cow = new CowModel({
+                owner,
+                name: name.trim().toUpperCase(),
+                events: 1,
+                treatmentsHistory: [],
+                lastTreatmentsSummary: []
+            });
+        } else {
+            cow.events += 1;
+            const nowClosing = new Date();
+            // Cerrar cualquier tratamiento/descarte previo para evitar duplicados
+            cow.treatmentsHistory.forEach(entry => {
+                if (!entry.finished) entry.finished = true;
+                if (!entry.milkDiscardCompletedAt) entry.milkDiscardCompletedAt = nowClosing;
+            });
+        }
+
+        // 6. SNAPSHOT INMUTABLE DEL TRATAMIENTO (¡ESTO ARREGLA TODOS LOS ERRORES DE VALIDACIÓN!)
+        const treatmentSnapshot = {
+            title: treatment.title,
+            duration: treatment.duration,
+            medications: treatment.medications.map(m => ({
+                name: m.name,
+                applyEveryTurns: m.applyEveryTurns,
+                applyUntilTurn: m.applyUntilTurn
+            })),
+            milkDiscardTurns: treatment.milkDiscardTurns
+        };
+
+        // 7. NUEVA ENTRADA EN EL HISTORIAL
+        const newTreatmentEntry = {
+            treatmentSnapshot,
+            startDate: startDateWithTurn,
+            endDate,
+            startTurn,
+            severity,
+            udders: Array.isArray(udders) ? udders : [udders].filter(Boolean),
+            treatedTurns: [],
+            finished: false,
+            endDateDiscardMilk,
+            milkDiscardCompletedAt: null,
+            isReMastitis,
+            reMastitisPreviousTreatmentTitle: reMastitisMeta?.previousTreatment || null,
+            reMastitisPreviousEndDate: reMastitisMeta?.previousTreatmentEndDate || null
+        };
+
+        // 8. PUSH SEGURO (gracias al default: [] en el modelo)
+        cow.treatmentsHistory.push(newTreatmentEntry);
+
+        // 9. Actualizamos resumen rápido para re-mastitis
+        cow.lastTreatmentsSummary = cow.lastTreatmentsSummary.filter(t =>
+            t.endDate >= moment().subtract(30, "days").toDate()
+        );
+        cow.lastTreatmentsSummary.push({
+            treatmentId: treatment._id,
+            title: treatment.title,
+            endDate
+        });
+
+        await cow.save();
+
+        // 10. Devolvemos la vaca con datos útiles para el frontend
+        const activeEntry = cow.treatmentsHistory[cow.treatmentsHistory.length - 1];
+
+        return {
+            success: true,
+            cow: {
+                ...cow.toObject(),
+                currentTreatmentSnapshot: activeEntry.treatmentSnapshot,
+                currentTreatmentEntry: activeEntry,
+                currentTurn: this.calculateCurrentTurn(activeEntry.startDate, activeEntry.startTurn),
+                medicationSchedule: TreatmentsManager.generateMedicationSchedule(activeEntry.treatmentSnapshot)
+            },
+            reMastitisWarning: null
+        };
+
         } catch (error) {
-            console.log(error);
+            console.error("Error en addCowToTreatment:", error);
             throw error;
         }
     }
-   
 
-    //Delete Animal
+    generateSchedule(treatment) {
+        return TreatmentsManager.generateMedicationSchedule(treatment);
+    }
 
-    async deleteCow(id){
-        try {
-            const deletedcow = await CowModel.findByIdAndDelete(id)
+    // Marcar turno como tratado
+    async markCowAsTreated(cowId, turn, userId) {
+        const cow = await CowModel.findOne({ _id: cowId, owner: userId });
+        if (!cow) throw new Error("Vaca no encontrada o sin tratamiento activo");
 
-            return deletedcow
-        } catch (error) {
-            console.log(error)
+        const currentEntry = this.getCurrentTreatmentEntry(cow);
+        if (!currentEntry) throw new Error("No hay tratamiento activo");
+
+        const currentTurn = this.calculateCurrentTurn(currentEntry.startDate, currentEntry.startTurn);
+        // Usamos el turno actual calculado para evitar errores por desfasaje entre cliente/servidor
+        const turnToApply = currentTurn;
+
+        if (!currentEntry.treatedTurns.includes(turnToApply)) {
+            currentEntry.treatedTurns.push(turnToApply);
+            await cow.save();
+        }
+
+        const updatedEntry = this.getCurrentTreatmentEntry(cow);
+
+        return {
+            success: true,
+            cow: {
+                ...cow.toObject(),
+                currentTurn,
+                medicationSchedule: TreatmentsManager.generateMedicationSchedule(updatedEntry.treatmentSnapshot)
+            }
+        };
+    }
+
+    // Finalizar descarte de leche
+    async finalizeMilkDiscard(cowId, userId) {
+        const cow = await CowModel.findOne({ _id: cowId, owner: userId });
+        if (!cow) throw new Error("Vaca no encontrada");
+
+        // Buscamos el último tratamiento con descarte pendiente (independiente de finished)
+        const now = moment().tz("America/Argentina/Buenos_Aires").toDate();
+        const lastEntry = cow.treatmentsHistory
+            .filter(t => 
+                !t.milkDiscardCompletedAt &&
+                t.endDateDiscardMilk &&
+                new Date(t.endDateDiscardMilk) <= now
+            )
+            .sort((a, b) => new Date(b.endDateDiscardMilk || b.endDate) - new Date(a.endDateDiscardMilk || a.endDate))[0];
+
+        if (!lastEntry) throw new Error("No hay descarte pendiente");
+
+        lastEntry.milkDiscardCompletedAt = new Date();
+        await cow.save();
+
+        return cow;
+    }
+    async getFinishedMilkDiscardCows(userId) {
+    const now = moment().tz("America/Argentina/Buenos_Aires");
+
+    const cows = await CowModel.find({
+        owner: userId,
+        "treatmentsHistory.endDateDiscardMilk": { $lt: now.toDate() },
+        "treatmentsHistory.milkDiscardCompletedAt": null
+    });
+
+    const result = [];
+
+    for (const cow of cows) {
+        const entry = cow.treatmentsHistory
+            .filter(t => 
+                t.endDateDiscardMilk < now.toDate() && 
+                !t.milkDiscardCompletedAt
+            )
+            .sort((a, b) => b.endDate - a.endDate)[0];
+
+        if (entry) {
+            result.push({
+                ...cow.toObject(),
+                lastTreatmentEntry: entry,
+                lastTreatmentSnapshot: entry.treatmentSnapshot
+            });
         }
     }
+
+    return result;
+    }
+
+    // Obtener vacas en tratamiento activo
+    async getCowsInTreatment(userId) {
+    try {
+        const now = moment().tz("America/Argentina/Buenos_Aires");
+
+        const cows = await CowModel.find({
+            owner: userId,
+            "treatmentsHistory.finished": false
+        });
+
+        const untreatedCows = [];
+        const treatedCows = [];
+
+        for (const cow of cows) {
+            // Marcar tratamientos como finalizados cuando su endDate ya pasó
+            let updated = false;
+            cow.treatmentsHistory.forEach(entry => {
+                if (!entry.finished && entry.endDate && moment(entry.endDate).isBefore(now)) {
+                    entry.finished = true;
+                    updated = true;
+                }
+            });
+            if (updated) {
+                await cow.save();
+            }
+
+            const activeEntry = cow.treatmentsHistory
+                .filter(t => !t.finished)
+                .sort((a, b) => b.startDate - a.startDate)[0]; 
+
+            if (!activeEntry) continue;
+            const currentTurn = this.calculateCurrentTurn(activeEntry.startDate, activeEntry.startTurn);
+
+            const medicationSchedule = TreatmentsManager.generateMedicationSchedule(activeEntry.treatmentSnapshot);
+            const medsForTurn = medicationSchedule[currentTurn - 1] || [];
+            const isAutoTreated = medsForTurn.length === 0;
+
+            const reMastitisInfo = activeEntry.isReMastitis ? {
+                previousTreatment: activeEntry.reMastitisPreviousTreatmentTitle,
+                previousEndDate: activeEntry.reMastitisPreviousEndDate || activeEntry.endDate,
+                daysSinceEnd: (activeEntry.reMastitisPreviousEndDate || activeEntry.endDate)
+                    ? Math.max(0, moment(activeEntry.startDate).diff(moment(activeEntry.reMastitisPreviousEndDate || activeEntry.endDate), "days"))
+                    : null
+            } : null;
+
+            const isTreatedThisTurn = isAutoTreated || activeEntry.treatedTurns.includes(currentTurn);
+
+            const cowData = {
+                ...cow.toObject(),
+                currentTreatmentSnapshot: activeEntry.treatmentSnapshot,
+                currentTreatmentEntry: activeEntry,
+                currentTurn,
+                medicationSchedule,
+                medsForTurn,
+                startDate: activeEntry.startDate,
+                endDate: activeEntry.endDate,
+                startTurn: activeEntry.startTurn,
+                udders: activeEntry.udders,
+                isReMastitis: Boolean(activeEntry.isReMastitis),
+                reMastitisInfo,
+                autoTreated: isAutoTreated
+            };
+
+            if (isTreatedThisTurn) {
+                treatedCows.push(cowData);
+            } else {
+                untreatedCows.push(cowData);
+            }
+        }
+
+        return { untreatedCows, treatedCows };
+    } catch (error) {
+        console.error("Error en getCowsInTreatment:", error);
+        throw error;
+    }
+}
+    async getCowsInMilkDiscard(userId) {
+    try {
+        const now = moment().tz("America/Argentina/Buenos_Aires");
+
+
+        const cows = await CowModel.find({
+            owner: userId,
+            "treatmentsHistory": {
+                $elemMatch: {
+                    finished: true,
+                    milkDiscardCompletedAt: null,                    
+                    endDateDiscardMilk: { $gte: now.toDate() }   
+                }
+            }
+        }).sort({ "treatmentsHistory.endDate": -1 });
+
+        const result = [];
+
+        for (const cow of cows) {
+            const lastEntry = cow.treatmentsHistory
+                .filter(t => t.finished && !t.milkDiscardCompletedAt && t.endDateDiscardMilk >= now.toDate())
+                .sort((a, b) => b.endDate - a.endDate)[0];
+
+            if (!lastEntry) continue;
+
+            const snapshot = lastEntry.treatmentSnapshot;
+
+            const start = moment(lastEntry.startDate).tz("America/Argentina/Buenos_Aires");
+            const startHour = lastEntry.startTurn === "morning" ? 0 : 12;
+            start.set({ hour: startHour, minute: 0, second: 0, millisecond: 0 });
+
+            const totalDiscardHours = snapshot.milkDiscardTurns * 12;
+            const discardEnd = moment(start).add(totalDiscardHours, "hours");
+
+            const hoursSinceStart = now.diff(start, "hours");
+            const currentTurnNumber = Math.floor(hoursSinceStart / 12) + 1;
+            const remainingDiscardTurns = Math.max(0, snapshot.milkDiscardTurns - currentTurnNumber + 1);
+
+            result.push({
+                ...cow.toObject(),
+                lastTreatmentEntry: lastEntry,
+                lastTreatmentSnapshot: snapshot,
+                endDateDiscardMilk: lastEntry.endDateDiscardMilk || discardEnd.toDate(),
+                remainingDiscardTurns,
+                currentTurn: currentTurnNumber
+            });
+        }
+
+        return result;
+    } catch (error) {
+        console.error("Error en getCowsInMilkDiscard:", error);
+        throw error;
+    }
+    }
+    async getCows(userId) {
+    try {
+        const cows = await CowModel.find({ owner: userId }).sort({ name: 1 });
+
+        const result = [];
+
+        for (const cow of cows) {
+            const history = Array.isArray(cow.treatmentsHistory) ? cow.treatmentsHistory : [];
+
+            let currentTreatmentSnapshot = null;
+            let currentTreatmentEntry = null;
+
+            const activeEntry = history.find(t => !t.finished);
+            if (activeEntry) {
+                currentTreatmentSnapshot = activeEntry.treatmentSnapshot || null;
+                currentTreatmentEntry = activeEntry;
+            }
+
+            result.push({
+                ...cow.toObject(),
+                currentTreatmentSnapshot,
+                currentTreatmentEntry,
+                inMilkDiscard: history.some(t => 
+                    t.finished && 
+                    !t.milkDiscardCompletedAt && 
+                    t.endDateDiscardMilk && 
+                    new Date(t.endDateDiscardMilk) > new Date()
+                ),
+                isReleased: history.length === 0 || history.every(t => t.milkDiscardCompletedAt)
+            });
+        }
+
+        return result;
+    } catch (error) {
+        console.error("Error crítico en getCows:", error);
+        throw error;
+    }
+} 
+
+    // Eliminar un animal por id y dueño
+    async deleteCow(cowId, owner) {
+        try {
+            const deleted = await CowModel.findOneAndDelete({ _id: cowId, owner });
+            if (!deleted) {
+                return { success: false, message: "Animal no encontrado o no pertenece al usuario" };
+            }
+            return { success: true, message: "Animal eliminado con éxito" };
+        } catch (error) {
+            console.error("Error al eliminar animal:", error);
+            return { success: false, message: "Error al eliminar el animal" };
+        }
+    }
+
 }
 
 module.exports = CowManager

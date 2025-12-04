@@ -23,6 +23,8 @@
   --VerdeOscuro: #15231f;
   --verdePasto: #2c4125;
   --LilaOscuro: #53255b;
+  --Rojo: #d7263d;
+  --RojoOscuro: #7d1128;
 }
 
 .enfermery-button {
@@ -193,6 +195,22 @@ nav {
   font-size: 20px;
 }
 
+.re-mastitis-card {
+  background-color: #f7d7db;
+  border-color: var(--Rojo);
+  box-shadow: 0 0 0 3px rgba(215, 38, 61, 0.25);
+}
+
+.remastitis-badge {
+  background-color: var(--Rojo);
+  color: white;
+  padding: 0.35rem 0.75rem;
+  border-radius: 10px;
+  margin: 0.25rem 0;
+  font-weight: bold;
+  display: inline-block;
+}
+
 
 .reset-button {
   margin-top: 2rem;
@@ -254,6 +272,51 @@ select {
   border: solid 2px;
 }
 
+#add-treatment-form button {
+  font-family: "Futura Heavy", sans-serif;
+  padding: 0.85rem 1.15rem;
+  border-radius: 12px;
+  border: 2px solid var(--VerdeOscuro);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+  margin-top: 0.5rem;
+  color: white;
+}
+
+#add-treatment-form button:active {
+  transform: translateY(2px);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+#add-medication {
+  background-color: var(--Lila);
+}
+
+#add-medication:hover {
+  background-color: var(--LilaOscuro);
+}
+
+.remove-medication {
+  background-color: var(--Rojo);
+}
+
+.remove-medication:hover {
+  background-color: var(--RojoOscuro);
+}
+
+#add-treatment-form button[type="submit"] {
+  background-color: var(--Verde);
+  color: var(--VerdeOscuro);
+  width: 100%;
+  font-size: 1.05rem;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
+}
+
+#add-treatment-form button[type="submit"]:hover {
+  background-color: #c3e978;
+}
+
 .hidden {
   display: none;
 }
@@ -305,7 +368,7 @@ select {
 /*Finalizar vacas*/
 
 .finished-milk-discard-title {
-  background-color: var(--VerdeOscuro);
+  background-color: var(--Naranja);
   padding: 0.5rem;
   border-radius: 12px;
   border: solid 2px;
@@ -388,6 +451,97 @@ select {
   margin: 2rem 0;
 }
 
+
+.discarding-milk-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.discarding-milk-card {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 2px solid var(--Naranja);
+}
+
+.discarding-milk-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+}
+
+.discard-highlight {
+  background-color: #ffe58f;
+  padding: 1rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.highlighted-date {
+  background: rgba(247, 184, 1, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+}
+
+.remaining-turns {
+  margin-top: 0.35rem;
+  font-size: 1.2rem;
+}
+
+.remaining-turns .urgent {
+  color: #d4380d;
+  font-weight: bold;
+}
+
+.remaining-turns .normal {
+  color: var(--VerdeOscuro);
+}
+
+.subtitle { font-size: 1rem; color: #f5f5f5; margin: 0.5rem 0 1rem; text-align: center; }
+.finished-milk-discard-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  transition: all 0.3s;
+}
+.finished-milk-discard-card:hover { transform: translateY(-5px); }
+.card-header {
+  background: var(--Naranja);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.events-badge {
+  background: var(--Naranja);
+  padding: 0.3rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+}
+.card-body p { margin: 0.8rem 0; }
+.success-text { color: var(--Verde); font-weight: bold; }
+.card-footer {
+  padding: 1rem;
+  text-align: center;
+  background: #f9f9f9;
+}
+.finalize-button.disabled {
+  background: #999 !important;
+  cursor: not-allowed;
+}
+
+@media (min-width: 768px) {
+  .discarding-milk-cards {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
 @media (min-width: 720px) {
   .add-page-button {
     font-size: 24px;
