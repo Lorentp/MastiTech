@@ -1,0 +1,31 @@
+<div class="form-container">
+    <form id="add-culture-form">
+        <label for="culture-name">Caravana del animal:</label>
+        <input type="text" id="culture-name" name="name" required>
+
+        <label>Ubres muestreadas:</label>
+        <div>
+            <input type="checkbox" id="cDI" name="udders" value="DI">
+            <label for="cDI">DI</label>
+            <input type="checkbox" id="cDD" name="udders" value="DD">
+            <label for="cDD">DD</label>
+            <input type="checkbox" id="cTI" name="udders" value="TI">
+            <label for="cTI">TI</label>
+            <input type="checkbox" id="cTD" name="udders" value="TD">
+            <label for="cTD">TD</label>
+        </div>
+
+        <label for="culture-start">Inicio del cultivo:</label>
+        <input type="date" id="culture-start" name="startDate" required>
+
+        <label for="culture-result">Resultado inicial:</label>
+        <select id="culture-result" name="result" required>
+            <option value="pendiente" selected>Pendiente</option>
+            <option value="negativo">Negativo</option>
+            <option value="sin desarrollo">Sin desarrollo</option>
+            <option value="positivo">Positivo</option>
+        </select>
+
+        <button type="submit" class="link-button">Guardar cultivo / evento</button>
+    </form>
+</div>

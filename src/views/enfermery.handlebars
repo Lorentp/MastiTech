@@ -1,6 +1,7 @@
 {{>global/headerlogged}}
 
 <nav>
+    <a href="/cultivos" class="link-button">Cultivos</a>
     <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
     <a href="/descarte-leche" class="link-button">Animales en descarte de leche</a>
     <a href="/liberar-leche" class="link-button">Animales para liberar</a>
@@ -8,7 +9,8 @@
 
 
 <div class="add-page-buttons">
-    <button class="add-page-button" id="addCowButton">Tratar animal</button>
+    <button class="add-page-button" id="addCowButton">Tratar mastitis</button>
+    <button class="add-page-button" id="addOtherTreatmentButton">Tratar otro</button>
     <button class="add-page-button" id="deleteCowButton">Eliminar animal</button>
 </div>
 
@@ -16,6 +18,10 @@
     <button class="add-page-button" id="addTreatmentButton">Agregar tratamiento</button>
     <button class="add-page-button" id="deleteTreatmentButton">Eliminar Tratamiento</button>
 </div>
+<div class="add-page-buttons">
+    <button class="add-page-button" id="addCultureButton">Agregar cultivo</button>
+</div>
+
 
 
 <div class="hidden" id="addCowForm">
@@ -31,6 +37,12 @@
 <div class="hidden" id="deleteTreatmentForm">
     {{>enfermery/delete-treatment-form}}
 </div>
+<div class="hidden" id="addCultureForm">
+    {{>enfermery/add-culture-form}}
+</div>
+<div class="hidden" id="addOtherTreatmentForm">
+    {{>enfermery/add-other-treatment-form}}
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.34/moment-timezone-with-data.min.js"></script>
@@ -41,3 +53,5 @@
 <script src="/js/enfermery/deleteCow.js"></script>
 <script src="/js/enfermery/deleteTreatment.js"></script>
 <script src="/js/enfermery/dailyPopup.js"></script>  
+<script src="/js/enfermery/addCulture.js"></script>
+<script src="/js/enfermery/otherTreatment.js"></script>

@@ -1,0 +1,108 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/home" class="link-button">Volver al inicio</a>
+    <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
+    <a href="/descarte-leche" class="link-button">Animales en descarte leche</a>
+    <a href="/liberar-leche" class="link-button">Animales para liberar</a>
+</nav>
+
+<h1>Cultivos en curso</h1>
+
+<h2>Esperando resultado</h2>
+{{#if pending.length}}
+    <div class="treated-container">
+    {{#each pending}}
+        <div class="finished-milk-discard-card">
+            <div class="card-header">
+                <h3>{{this.name}}</h3>
+                <span class="events-badge">Eventos (cultivos): {{this.eventsCount}}</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Ubres:</strong> {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Sin especificar{{/if}}</p>
+                <p><strong>Inicio cultivo:</strong> {{formatDate this.startDate}}</p>
+                <p><strong>Resultado actual:</strong> {{this.status}}</p>
+                <div class="culture-result-form">
+                    <label>Actualizar resultado:</label>
+                    <select class="culture-result-select" data-id="{{this._id}}">
+                        <option value="pendiente">Pendiente</option>
+                        <option value="negativo">Negativo</option>
+                        <option value="sin desarrollo">Sin desarrollo</option>
+                        <option value="positivo">Positivo</option>
+                    </select>
+                    <button class="link-button culture-result-save" data-id="{{this._id}}">Guardar</button>
+                    <button class="link-button danger culture-delete" data-id="{{this._id}}">Eliminar</button>
+                </div>
+                {{#if (lt 1 this.eventsCount)}}
+                <div class="events-breakdown">
+                    <p><strong>Eventos (detallados):</strong></p>
+                    <p>Positivos: {{this.eventStats.positives.count}} 
+                        {{#if this.eventStats.positives.dates.length}}
+                            ({{#each this.eventStats.positives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
+                        {{/if}}
+                    </p>
+                    <p>Sin desarrollo: {{this.eventStats.noGrowth.count}}
+                        {{#if this.eventStats.noGrowth.dates.length}}
+                            ({{#each this.eventStats.noGrowth.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
+                        {{/if}}
+                    </p>
+                    <p>Negativos: {{this.eventStats.negatives.count}}
+                        {{#if this.eventStats.negatives.dates.length}}
+                            ({{#each this.eventStats.negatives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
+                        {{/if}}
+                    </p>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    {{/each}}
+    </div>
+{{else}}
+    <p class="no-cows-message">No hay cultivos pendientes.</p>
+{{/if}}
+
+<h2>Con resultado</h2>
+{{#if finished.length}}
+    <div class="treated-container">
+    {{#each finished}}
+        <div class="finished-milk-discard-card">
+            <div class="card-header">
+                <h3>{{this.name}}</h3>
+                <span class="events-badge">Eventos (cultivos): {{this.eventsCount}}</span>
+            </div>
+            <div class="card-body">
+                <p><strong>Ubres:</strong> {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Sin especificar{{/if}}</p>
+                <p><strong>Inicio cultivo:</strong> {{formatDate this.startDate}}</p>
+                <p><strong>Resultado final:</strong> {{this.status}}</p>
+                <div class="culture-result-form">
+                    <button class="link-button danger culture-delete" data-id="{{this._id}}">Eliminar</button>
+                </div>
+                {{#if (lt 1 this.eventsCount)}}
+                <div class="events-breakdown">
+                    <p><strong>Eventos (detallados):</strong></p>
+                    <p>Positivos: {{this.eventStats.positives.count}} 
+                        {{#if this.eventStats.positives.dates.length}}
+                            ({{#each this.eventStats.positives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
+                        {{/if}}
+                    </p>
+                    <p>Sin desarrollo: {{this.eventStats.noGrowth.count}}
+                        {{#if this.eventStats.noGrowth.dates.length}}
+                            ({{#each this.eventStats.noGrowth.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
+                        {{/if}}
+                    </p>
+                    <p>Negativos: {{this.eventStats.negatives.count}}
+                        {{#if this.eventStats.negatives.dates.length}}
+                            ({{#each this.eventStats.negatives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
+                        {{/if}}
+                    </p>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+    {{/each}}
+    </div>
+{{else}}
+    <p class="no-cows-message">Todavia no hay cultivos con resultado.</p>
+{{/if}}
+
+<script src="/js/enfermery/cultureResults.js"></script>

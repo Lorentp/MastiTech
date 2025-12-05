@@ -3,8 +3,10 @@ const router = express.Router()
 
 const CowManager = require("../managers/cows-manager")
 const TreatmentsManager = require("../managers/treatments-manager")
+const CultureManager = require("../managers/culture-manager")
 const cowManager = new CowManager()
 const treatmentManager = new TreatmentsManager()
+const cultureManager = new CultureManager()
 const moment = require("moment-timezone")
 
 
@@ -40,6 +42,39 @@ router.get("/home", async (req, res) => {
         res.render("enfermery", { treatments, cows });
     } catch (error) {
         console.log(error);
+    }
+});
+router.get("/cultivos", async (req, res) => {
+    try {
+        if (!req.session.login) {
+            res.redirect("/");
+            return;
+        }
+        const userId = req.session.user._id;
+        const culturesDb = await cultureManager.getCultures(userId);
+        const cultures = culturesDb.map(c => {
+            const obj = c.toObject();
+            const events = Array.isArray(obj.events) ? obj.events : [];
+            const positives = events.filter(e => e.result === "positivo");
+            const negatives = events.filter(e => e.result === "negativo");
+            const noGrowth = events.filter(e => e.result === "sin desarrollo");
+
+            return {
+                ...obj,
+                eventStats: {
+                    positives: { count: positives.length, dates: positives.map(e => e.recordedAt) },
+                    negatives: { count: negatives.length, dates: negatives.map(e => e.recordedAt) },
+                    noGrowth: { count: noGrowth.length, dates: noGrowth.map(e => e.recordedAt) },
+                }
+            };
+        });
+
+        const pending = cultures.filter(c => c.status === "pendiente");
+        const finished = cultures.filter(c => c.status !== "pendiente");
+        res.render("cultures", { pending, finished });
+    } catch (error) {
+        console.log("Error fetching cultures:", error);
+        res.status(500).send("Error, intentelo nuevamente");
     }
 });
 router.get("/en-tratamiento", async (req, res) => {

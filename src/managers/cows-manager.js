@@ -27,13 +27,14 @@ class CowManager {
     // Agregar vaca a tratamiento (NUEVA LÓGICA)
     async addCowToTreatment({
         name,
-        udders,
-        severity,
+        udders = [],
+        severity = "1",
         startDate,
         startTurn,
         treatmentId,
         owner,
-        confirmReMastitis = false
+        confirmReMastitis = false,
+        skipEvent = false
     }) {
         try {
         // 1. Buscamos el tratamiento original (para sacar los datos)
@@ -93,12 +94,14 @@ class CowManager {
             cow = new CowModel({
                 owner,
                 name: name.trim().toUpperCase(),
-                events: 1,
+                events: skipEvent ? 0 : 1,
                 treatmentsHistory: [],
                 lastTreatmentsSummary: []
             });
         } else {
-            cow.events += 1;
+            if (!skipEvent) {
+                cow.events += 1;
+            }
             const nowClosing = new Date();
             // Cerrar cualquier tratamiento/descarte previo para evitar duplicados
             cow.treatmentsHistory.forEach(entry => {

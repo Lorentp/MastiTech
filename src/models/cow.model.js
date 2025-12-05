@@ -19,7 +19,7 @@ const treatmentEntrySchema = new mongoose.Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     startTurn: { type: String, enum: ["morning", "afternoon"], required: true },
-    severity: { type: String, enum: ["1", "2", "3"], required: true },
+    severity: { type: String, enum: ["1", "2", "3"], default: "1" },
     udders: [{ type: String, enum: ["DI", "DD", "TI", "TD"] }],
 
     treatedTurns: [{ type: Number }],     
