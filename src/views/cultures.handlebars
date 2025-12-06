@@ -7,13 +7,39 @@
     <a href="/liberar-leche" class="link-button">Animales para liberar</a>
 </nav>
 
+<div class="form-container">
+    <h2>Buscar animales</h2>
+    <div class="filter-row">
+        <label for="culture-search">Buscar por caravana:</label>
+        <input type="text" id="culture-search" placeholder="Ej: 1234">
+    </div>
+    <div class="filter-row">
+        <label for="culture-events-filter">Filtrar por eventos (cultivos):</label>
+        <select id="culture-events-filter">
+            <option value="any">Todos</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="10plus">10+</option>
+        </select>
+    </div>
+</div>
+
 <h1>Cultivos en curso</h1>
 
 <h2>Esperando resultado</h2>
 {{#if pending.length}}
     <div class="treated-container">
     {{#each pending}}
-        <div class="finished-milk-discard-card">
+        <div class="finished-milk-discard-card" data-name="{{this.name}}" data-events="{{this.eventsCount}}">
             <div class="card-header">
                 <h3>{{this.name}}</h3>
                 <span class="events-badge">Eventos (cultivos): {{this.eventsCount}}</span>
@@ -62,7 +88,7 @@
 {{#if finished.length}}
     <div class="treated-container">
     {{#each finished}}
-        <div class="finished-milk-discard-card">
+        <div class="finished-milk-discard-card" data-name="{{this.name}}" data-events="{{this.eventsCount}}">
             <div class="card-header">
                 <h3>{{this.name}}</h3>
                 <span class="events-badge">Eventos (cultivos): {{this.eventsCount}}</span>
@@ -92,3 +118,4 @@
 {{/if}}
 
 <script src="/js/enfermery/cultureResults.js"></script>
+<script src="/js/enfermery/cultureFilters.js"></script>

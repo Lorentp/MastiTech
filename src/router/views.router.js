@@ -39,7 +39,8 @@ router.get("/home", async (req, res) => {
         const userId = req.session.user._id;
         const treatments = await treatmentManager.getTreatments(userId);
         const cows = await cowManager.getCows(userId);
-        res.render("enfermery", { treatments, cows });
+        const { untreatedCows, treatedCows } = await cowManager.getCowsInTreatment(userId);
+        res.render("enfermery", { treatments, cows, untreatedCows, treatedCows });
     } catch (error) {
         console.log(error);
     }
@@ -97,6 +98,21 @@ router.get("/en-tratamiento", async (req, res) => {
         res.render("enfermery-treating", { untreatedCows, treatedCows, treatments});
     } catch (error) {
         console.log("Error fetching cows in treatment:", error);
+        res.status(500).send("Error, intentelo nuevamente");
+    }
+});
+
+router.get("/animales", async (req, res) => {
+    try {
+        if (!req.session.login) {
+            res.redirect("/");
+            return;
+        }
+        const userId = req.session.user._id;
+        const cows = await cowManager.getCows(userId);
+        res.render("all-cows", { cows });
+    } catch (error) {
+        console.log("Error fetching cows:", error);
         res.status(500).send("Error, intentelo nuevamente");
     }
 });

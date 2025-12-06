@@ -12,7 +12,7 @@
 <h2>Vacas no tratadas en el turno actual</h2>
 {{#if untreatedCows.length}}
     {{#each untreatedCows}}
-        <div class="treated-container {{#if this.reMastitisInfo}}re-mastitis-card{{/if}}">
+        <div class="treated-container treatment-card {{#if this.reMastitisInfo}}re-mastitis-card{{/if}}" data-name="{{this.name}}" data-events="{{this.events}}" data-treatment="{{this.currentTreatmentSnapshot.title}}">
             <div><p class="cow">Nombre del animal: {{this.name}}</p></div>
             {{#if this.reMastitisInfo}}
                 <p class="remastitis-badge">
@@ -71,7 +71,7 @@
 <h2>Vacas tratadas en el turno actual</h2>
 {{#if treatedCows.length}}
     {{#each treatedCows}}
-        <div class="treated-container {{#if this.reMastitisInfo}}re-mastitis-card{{/if}}">
+        <div class="treated-container treatment-card {{#if this.reMastitisInfo}}re-mastitis-card{{/if}}" data-name="{{this.name}}" data-events="{{this.events}}" data-treatment="{{this.currentTreatmentSnapshot.title}}">
             <div><p class="cow">Nombre del animal: {{this.name}}</p></div>
             {{#if this.reMastitisInfo}}
                 <p class="remastitis-badge">
@@ -112,4 +112,5 @@
     </div>
 {{/if}}
 
+<script src="/js/enfermery/treatmentFilters.js"></script>
 <script src="/js/enfermery/markAsTreated.js"></script>

@@ -21,7 +21,8 @@ router.post("/add", async (req, res) => {
             startDate, 
             startTurn, 
             treatmentId, 
-            confirmReMastitis = false 
+            confirmReMastitis = false,
+            skipEvent = false
         } = req.body;
 
         // Validación básica
@@ -40,7 +41,8 @@ router.post("/add", async (req, res) => {
             startTurn,
             treatmentId,
             owner,
-            confirmReMastitis
+            confirmReMastitis,
+            skipEvent
         });
 
         if (result.reMastitisWarning && !confirmReMastitis) {

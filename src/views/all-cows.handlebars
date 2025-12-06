@@ -1,0 +1,101 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/home" class="link-button">Volver al inicio</a>
+    <a href="/cultivos" class="link-button">Cultivos</a>
+    <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
+    <a href="/descarte-leche" class="link-button">Animales en descarte de leche</a>
+    <a href="/liberar-leche" class="link-button">Animales para liberar</a>
+</nav>
+
+<div class="form-container">
+    <h2>Buscar animales</h2>
+    <div class="filter-row">
+        <label for="all-cows-search">Buscar por caravana:</label>
+        <input type="text" id="all-cows-search" placeholder="Ej: 1234">
+    </div>
+    <div class="filter-row">
+        <label for="all-cows-events">Filtrar por eventos (mastitis):</label>
+        <select id="all-cows-events">
+            <option value="any">Todos</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="10plus">10+</option>
+        </select>
+    </div>
+    <div class="filter-row">
+        <label for="all-cows-treatment">Filtrar por tratamiento activo:</label>
+        <select id="all-cows-treatment">
+            <option value="any">Todos</option>
+        </select>
+    </div>
+</div>
+
+<h1>Animales registrados</h1>
+
+{{#if cows.length}}
+    <div class="treated-container compact-grid">
+    {{#each cows}}
+        <div class="finished-milk-discard-card treatment-card compact-card" data-name="{{this.name}}" data-events="{{this.events}}" data-treatment="{{#if this.currentTreatmentSnapshot}}{{this.currentTreatmentSnapshot.title}}{{else}}sin-tratamiento{{/if}}">
+            <div class="card-header compact-header">
+                <div>
+                    <h3>{{this.name}}</h3>
+                    <span class="events-badge">Eventos (mastitis): {{this.events}}</span>
+                </div>
+                <button type="button" class="link-button mini-button toggle-details">Ver ficha</button>
+            </div>
+            <div class="card-body compact-body">
+                <p><strong>Estado:</strong> {{#if this.currentTreatmentSnapshot}}En tratamiento{{else}}Sin tratamiento activo{{/if}}</p>
+                <p><strong>Tratamiento activo:</strong> {{#if this.currentTreatmentSnapshot}}{{this.currentTreatmentSnapshot.title}}{{else}}Ninguno{{/if}}</p>
+                <p><strong>En descarte de leche:</strong> {{#if this.inMilkDiscard}}Si{{else}}No{{/if}}</p>
+                <p><strong>Liberado:</strong> {{#if this.isReleased}}Si{{else}}No{{/if}}</p>
+            </div>
+            <div class="cow-details hidden">
+                {{#if this.currentTreatmentSnapshot}}
+                    <p><strong>Inicio:</strong> {{formatDate this.currentTreatmentEntry.startDate}} ({{formatTurn this.currentTreatmentEntry.startTurn}})</p>
+                    <p><strong>Finaliza:</strong> {{formatDate this.currentTreatmentEntry.endDate}}</p>
+                    <p><strong>Ubres afectadas:</strong>
+                        {{#if this.currentTreatmentEntry.udders.length}}
+                            {{join this.currentTreatmentEntry.udders ", "}}
+                        {{else}}
+                            Ninguna
+                        {{/if}}
+                    </p>
+                    <hr>
+                {{/if}}
+                <p><strong>Historial de tratamientos:</strong></p>
+                {{#if this.treatmentsHistory.length}}
+                    <ul class="treatment-history-list">
+                    {{#each this.treatmentsHistory}}
+                        <li>
+                            <p><strong>{{this.treatmentSnapshot.title}}</strong></p>
+                            <p>Inicio: {{formatDate this.startDate}} ({{formatTurn this.startTurn}})</p>
+                            <p>Fin medicacion: {{formatDate this.endDate}}</p>
+                            <p>Descarte leche hasta: {{#if this.endDateDiscardMilk}}{{formatDate this.endDateDiscardMilk}}{{else}}N/A{{/if}}</p>
+                            <p>Severidad: {{this.severity}}</p>
+                            <p>Ubres: {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Ninguna{{/if}}</p>
+                            <p>Estado: {{#if this.finished}}Finalizado{{else}}Activo{{/if}}</p>
+                        </li>
+                    {{/each}}
+                    </ul>
+                {{else}}
+                    <p>Sin tratamientos registrados.</p>
+                {{/if}}
+            </div>
+        </div>
+    {{/each}}
+    </div>
+{{else}}
+    <p class="no-cows-message">Todavia no hay animales cargados.</p>
+{{/if}}
+
+<script src="/js/enfermery/allCowsFilters.js"></script>
