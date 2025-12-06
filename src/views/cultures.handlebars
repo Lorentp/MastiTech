@@ -19,9 +19,12 @@
                 <span class="events-badge">Eventos (cultivos): {{this.eventsCount}}</span>
             </div>
             <div class="card-body">
-                <p><strong>Ubres:</strong> {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Sin especificar{{/if}}</p>
-                <p><strong>Inicio cultivo:</strong> {{formatDate this.startDate}}</p>
                 <p><strong>Resultado actual:</strong> {{this.status}}</p>
+                {{#if this.latestEvent}}
+                <p><strong>Evento a actualizar:</strong> {{formatDate this.latestEvent.recordedAt}}
+                    {{#if this.latestEvent.udders.length}} · Ubres: {{join this.latestEvent.udders ", "}}{{/if}}
+                </p>
+                {{/if}}
                 <div class="culture-result-form">
                     <label>Actualizar resultado:</label>
                     <select class="culture-result-select" data-id="{{this._id}}">
@@ -36,21 +39,15 @@
                 {{#if (lt 1 this.eventsCount)}}
                 <div class="events-breakdown">
                     <p><strong>Eventos (detallados):</strong></p>
-                    <p>Positivos: {{this.eventStats.positives.count}} 
-                        {{#if this.eventStats.positives.dates.length}}
-                            ({{#each this.eventStats.positives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
-                        {{/if}}
-                    </p>
-                    <p>Sin desarrollo: {{this.eventStats.noGrowth.count}}
-                        {{#if this.eventStats.noGrowth.dates.length}}
-                            ({{#each this.eventStats.noGrowth.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
-                        {{/if}}
-                    </p>
-                    <p>Negativos: {{this.eventStats.negatives.count}}
-                        {{#if this.eventStats.negatives.dates.length}}
-                            ({{#each this.eventStats.negatives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
-                        {{/if}}
-                    </p>
+                    {{#each this.eventsDetailed}}
+                        <p>
+                            - {{this.result}}:
+                            {{formatDate this.recordedAt}}
+                            {{#if this.udders.length}}
+                                · Ubres: {{join this.udders ", "}}
+                            {{/if}}
+                        </p>
+                    {{/each}}
                 </div>
                 {{/if}}
             </div>
@@ -70,32 +67,21 @@
                 <h3>{{this.name}}</h3>
                 <span class="events-badge">Eventos (cultivos): {{this.eventsCount}}</span>
             </div>
-            <div class="card-body">
-                <p><strong>Ubres:</strong> {{#if this.udders.length}}{{join this.udders ", "}}{{else}}Sin especificar{{/if}}</p>
-                <p><strong>Inicio cultivo:</strong> {{formatDate this.startDate}}</p>
-                <p><strong>Resultado final:</strong> {{this.status}}</p>
-                <div class="culture-result-form">
-                    <button class="link-button danger culture-delete" data-id="{{this._id}}">Eliminar</button>
-                </div>
+            <div class="card-body">             
                 {{#if (lt 1 this.eventsCount)}}
                 <div class="events-breakdown">
                     <p><strong>Eventos (detallados):</strong></p>
-                    <p>Positivos: {{this.eventStats.positives.count}} 
-                        {{#if this.eventStats.positives.dates.length}}
-                            ({{#each this.eventStats.positives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
-                        {{/if}}
-                    </p>
-                    <p>Sin desarrollo: {{this.eventStats.noGrowth.count}}
-                        {{#if this.eventStats.noGrowth.dates.length}}
-                            ({{#each this.eventStats.noGrowth.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
-                        {{/if}}
-                    </p>
-                    <p>Negativos: {{this.eventStats.negatives.count}}
-                        {{#if this.eventStats.negatives.dates.length}}
-                            ({{#each this.eventStats.negatives.dates}}{{formatDate this}}{{#unless @last}}, {{/unless}}{{/each}})
-                        {{/if}}
-                    </p>
+                    {{#each this.eventsDetailed}}
+                        <p>
+                            - {{this.result}}:
+                            {{formatDate this.recordedAt}}
+                            {{#if this.udders.length}}
+                                · Ubres: {{join this.udders ", "}}
+                            {{/if}}
+                        </p>
+                    {{/each}}
                 </div>
+                    <button class="link-button danger culture-delete" data-id="{{this._id}}">Eliminar</button>
                 {{/if}}
             </div>
         </div>

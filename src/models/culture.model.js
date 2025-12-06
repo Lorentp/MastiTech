@@ -8,6 +8,7 @@ const cultureResultSchema = new mongoose.Schema(
       required: true,
       default: "pendiente",
     },
+    udders: [{ type: String, enum: ["DI", "DD", "TI", "TD"] }],
     recordedAt: {
       type: Date,
       default: Date.now,
@@ -34,12 +35,18 @@ const cultureSchema = new mongoose.Schema(
 );
 
 cultureSchema.pre("save", function (next) {
-  this.eventsCount = Array.isArray(this.events) ? this.events.length : 0;
-  if (this.eventsCount > 0) {
-    const last = this.events[this.eventsCount - 1];
-    if (last?.result) {
-      this.status = last.result;
+  if (Array.isArray(this.events)) {
+    // Ordenamos por fecha para que el ultimo sea el mas reciente
+    this.events.sort((a, b) => new Date(a.recordedAt || 0) - new Date(b.recordedAt || 0));
+    this.eventsCount = this.events.length;
+    if (this.eventsCount > 0) {
+      const last = this.events[this.eventsCount - 1];
+      if (last?.result) {
+        this.status = last.result;
+      }
     }
+  } else {
+    this.eventsCount = 0;
   }
   next();
 });

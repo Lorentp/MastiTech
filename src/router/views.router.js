@@ -54,10 +54,11 @@ router.get("/cultivos", async (req, res) => {
         const culturesDb = await cultureManager.getCultures(userId);
         const cultures = culturesDb.map(c => {
             const obj = c.toObject();
-            const events = Array.isArray(obj.events) ? obj.events : [];
+            const events = Array.isArray(obj.events) ? [...obj.events].sort((a, b) => new Date(b.recordedAt || 0) - new Date(a.recordedAt || 0)) : [];
             const positives = events.filter(e => e.result === "positivo");
             const negatives = events.filter(e => e.result === "negativo");
             const noGrowth = events.filter(e => e.result === "sin desarrollo");
+            const latestEvent = events[0] || null;
 
             return {
                 ...obj,
@@ -65,7 +66,13 @@ router.get("/cultivos", async (req, res) => {
                     positives: { count: positives.length, dates: positives.map(e => e.recordedAt) },
                     negatives: { count: negatives.length, dates: negatives.map(e => e.recordedAt) },
                     noGrowth: { count: noGrowth.length, dates: noGrowth.map(e => e.recordedAt) },
-                }
+                },
+                eventsDetailed: events.map(e => ({
+                    result: e.result,
+                    recordedAt: e.recordedAt,
+                    udders: Array.isArray(e.udders) ? e.udders : []
+                })),
+                latestEvent
             };
         });
 
