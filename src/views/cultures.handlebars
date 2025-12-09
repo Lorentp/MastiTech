@@ -62,7 +62,7 @@
                     <button class="link-button culture-result-save" data-id="{{this._id}}">Guardar</button>
                     <button class="link-button danger culture-delete" data-id="{{this._id}}">Eliminar</button>
                 </div>
-                {{#if (lt 1 this.eventsCount)}}
+                {{#if this.eventsDetailed.length}}
                 <div class="events-breakdown">
                     <p><strong>Eventos (detallados):</strong></p>
                     {{#each this.eventsDetailed}}
@@ -94,7 +94,7 @@
                 <span class="events-badge">Eventos (cultivos): {{this.eventsCount}}</span>
             </div>
             <div class="card-body">             
-                {{#if (lt 1 this.eventsCount)}}
+                {{#if this.eventsDetailed.length}}
                 <div class="events-breakdown">
                     <p><strong>Eventos (detallados):</strong></p>
                     {{#each this.eventsDetailed}}
