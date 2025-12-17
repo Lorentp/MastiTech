@@ -363,6 +363,43 @@ select {
   display: none;
 }
 
+/* Cultivos: eventos */
+.culture-event-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.culture-event-text {
+  flex: 1;
+  min-width: 0;
+  color: black;
+}
+
+.culture-event-delete-icon {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  border: 2px solid var(--RojoOscuro);
+  background-color: var(--Rojo);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.culture-event-delete-icon:hover {
+  background-color: var(--RojoOscuro);
+}
+
+.culture-event-delete-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: white;
+}
+
 
 
 /*Finalizar vacas*/

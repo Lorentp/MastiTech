@@ -1,5 +1,6 @@
 const CultureModel = require("../models/culture.model");
 const moment = require("moment-timezone");
+const mongoose = require("mongoose");
 
 class CultureManager {
   async addCulture({ owner, name, udders, startDate, result }) {
@@ -92,8 +93,86 @@ class CultureManager {
     return deleted;
   }
 
+  async deleteEvent(cultureId, owner, recordedAt) {
+    if (!recordedAt) {
+      throw new Error("Falta 'recordedAt'");
+    }
+
+    const targetDate = new Date(recordedAt);
+    const targetTime = targetDate.getTime();
+    if (!Number.isFinite(targetTime)) {
+      throw new Error("Fecha de evento invalida");
+    }
+
+    const culture = await CultureModel.findOne({ _id: cultureId, owner });
+    if (!culture) {
+      throw new Error("Cultivo no encontrado");
+    }
+
+    const events = Array.isArray(culture.events) ? culture.events : [];
+    const filtered = events.filter((event) => {
+      const eventTime = new Date(event.recordedAt).getTime();
+      return eventTime !== targetTime;
+    });
+
+    if (filtered.length === events.length) {
+      throw new Error("Evento no encontrado");
+    }
+
+    culture.events = filtered;
+    await culture.save();
+    return culture;
+  }
+
+  async deleteEventById(cultureId, owner, eventId) {
+    if (!eventId) {
+      throw new Error("Falta 'eventId'");
+    }
+
+    const id = mongoose.Types.ObjectId.isValid(eventId)
+      ? new mongoose.Types.ObjectId(eventId)
+      : null;
+    if (!id) {
+      throw new Error("eventId invalido");
+    }
+
+    const culture = await CultureModel.findOne({ _id: cultureId, owner });
+    if (!culture) {
+      throw new Error("Cultivo no encontrado");
+    }
+
+    const events = Array.isArray(culture.events) ? culture.events : [];
+    const filtered = events.filter((event) => String(event._id) !== String(id));
+
+    if (filtered.length === events.length) {
+      throw new Error("Evento no encontrado");
+    }
+
+    culture.events = filtered;
+    await culture.save();
+    return culture;
+  }
+
   async getCultures(owner) {
-    return CultureModel.find({ owner }).sort({ createdAt: -1 });
+    const cultures = await CultureModel.find({ owner }).sort({ createdAt: -1 });
+
+    // Migración suave: si algún evento viejo no tiene _id, se lo agregamos y persistimos.
+    for (const culture of cultures) {
+      const events = Array.isArray(culture.events) ? culture.events : [];
+      const needsIds = events.some((event) => !event?._id);
+      if (!needsIds) continue;
+
+      for (const event of events) {
+        if (!event._id) {
+          event._id = new mongoose.Types.ObjectId();
+        }
+      }
+
+      culture.events = events;
+      await culture.save();
+    }
+
+    return cultures;
   }
 
   async getPendingCultures(owner) {

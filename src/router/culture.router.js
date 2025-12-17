@@ -88,4 +88,45 @@ router.post("/:id/delete", async (req, res) => {
   }
 });
 
+router.post("/:id/event/delete", async (req, res) => {
+  try {
+    if (!req.session?.login || !req.session?.user?._id) {
+      return res.status(401).json({ success: false, message: "No autorizado" });
+    }
+
+    const { id } = req.params;
+    const owner = req.session.user._id;
+    const { recordedAt, eventId } = req.body;
+
+    const culture = eventId
+      ? await cultureManager.deleteEventById(id, owner, eventId)
+      : await cultureManager.deleteEvent(id, owner, recordedAt);
+    res.status(200).json({ success: true, data: culture });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Error al eliminar evento",
+    });
+  }
+});
+
+router.post("/:id/event/:eventId/delete", async (req, res) => {
+  try {
+    if (!req.session?.login || !req.session?.user?._id) {
+      return res.status(401).json({ success: false, message: "No autorizado" });
+    }
+
+    const { id, eventId } = req.params;
+    const owner = req.session.user._id;
+
+    const culture = await cultureManager.deleteEventById(id, owner, eventId);
+    res.status(200).json({ success: true, data: culture });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message || "Error al eliminar evento",
+    });
+  }
+});
+
 module.exports = router;

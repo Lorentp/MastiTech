@@ -53,4 +53,52 @@ document.addEventListener("click", async (e) => {
       Swal.fire("Error", "No se pudo eliminar", "error");
     }
   }
+
+  if (e.target.classList.contains("culture-event-delete")) {
+    const button = e.target.closest(".culture-event-delete");
+    const cultureId = button?.dataset?.id;
+    const eventId = button?.dataset?.eventId;
+    const result = button?.dataset?.result;
+    const dateLabel = button?.dataset?.dateLabel;
+    const uddersLabel = button?.dataset?.uddersLabel;
+
+    if (!cultureId || !eventId) {
+      return Swal.fire("Error", "No se pudo identificar el evento", "error");
+    }
+
+    const confirm = await Swal.fire({
+      title: "Eliminar evento",
+      html: `
+        <div style="text-align:left">
+          <p>Se va a eliminar este evento:</p>
+          <p><strong>Resultado:</strong> ${result || "N/D"}</p>
+          <p><strong>Fecha:</strong> ${dateLabel || "N/D"}</p>
+          ${uddersLabel ? `<p><strong>Ubres:</strong> ${uddersLabel}</p>` : ""}
+          <p style="margin-top:10px"><strong>Esto no elimina el animal</strong>, solo este evento del cultivo.</p>
+        </div>
+      `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      const res = await fetch(`/culture/${cultureId}/event/${eventId}/delete`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const json = await res.json();
+      if (json.success) {
+        Swal.fire("Eliminado", "Evento eliminado", "success").then(() => {
+          window.location.reload();
+        });
+      } else {
+        Swal.fire("Error", json.message || "No se pudo eliminar", "error");
+      }
+    } catch (error) {
+      Swal.fire("Error", "No se pudo eliminar", "error");
+    }
+  }
 });

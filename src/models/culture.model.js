@@ -13,8 +13,7 @@ const cultureResultSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-  },
-  { _id: false }
+  }
 );
 
 const cultureSchema = new mongoose.Schema(

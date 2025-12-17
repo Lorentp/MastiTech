@@ -71,9 +71,19 @@ router.get("/cultivos", async (req, res) => {
                 eventsDetailed: events.map(e => ({
                     result: e.result,
                     recordedAt: e.recordedAt,
+                    recordedAtISO: e.recordedAt ? new Date(e.recordedAt).toISOString() : "",
+                    eventId: e._id ? String(e._id) : "",
                     udders: Array.isArray(e.udders) ? e.udders : []
                 })),
-                latestEvent
+                latestEvent: latestEvent
+                  ? {
+                      ...latestEvent,
+                      recordedAtISO: latestEvent.recordedAt
+                        ? new Date(latestEvent.recordedAt).toISOString()
+                        : "",
+                      eventId: latestEvent._id ? String(latestEvent._id) : "",
+                    }
+                  : null
             };
         });
 

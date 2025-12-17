@@ -48,7 +48,7 @@
                 <p><strong>Resultado actual:</strong> {{this.status}}</p>
                 {{#if this.latestEvent}}
                 <p><strong>Evento a actualizar:</strong> {{formatDate this.latestEvent.recordedAt}}
-                    {{#if this.latestEvent.udders.length}} · Ubres: {{join this.latestEvent.udders ", "}}{{/if}}
+                    {{#if this.latestEvent.udders.length}}Ubres: {{join this.latestEvent.udders ", "}}{{/if}}
                 </p>
                 {{/if}}
                 <div class="culture-result-form">
@@ -66,13 +66,29 @@
                 <div class="events-breakdown">
                     <p><strong>Eventos (detallados):</strong></p>
                     {{#each this.eventsDetailed}}
-                        <p>
-                            - {{this.result}}:
-                            {{formatDate this.recordedAt}}
-                            {{#if this.udders.length}}
-                                · Ubres: {{join this.udders ", "}}
-                            {{/if}}
-                        </p>
+                        <div class="culture-event-row">
+                            <span class="culture-event-text">
+                                - {{this.result}}: {{formatDate this.recordedAt}}
+                                {{#if this.udders.length}}
+                                    Ubres: {{join this.udders ", "}}
+                                {{/if}}
+                            </span>
+                            <button
+                                type="button"
+                                class="culture-event-delete culture-event-delete-icon"
+                                data-id="{{../_id}}"
+                                data-event-id="{{this.eventId}}"
+                                data-result="{{this.result}}"
+                                data-date-label="{{formatDate this.recordedAt}}"
+                                data-udders-label="{{join this.udders ", "}}"
+                                aria-label="Eliminar evento"
+                                title="Eliminar evento"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v10h-2V9zm4 0h2v10h-2V9zM7 9h2v10H7V9zM6 21h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2z"/>
+                                </svg>
+                            </button>
+                        </div>
                     {{/each}}
                 </div>
                 {{/if}}
@@ -98,13 +114,29 @@
                 <div class="events-breakdown">
                     <p><strong>Eventos (detallados):</strong></p>
                     {{#each this.eventsDetailed}}
-                        <p>
-                            - {{this.result}}:
-                            {{formatDate this.recordedAt}}
-                            {{#if this.udders.length}}
-                                · Ubres: {{join this.udders ", "}}
-                            {{/if}}
-                        </p>
+                        <div class="culture-event-row">
+                            <span class="culture-event-text">
+                                - {{this.result}}: {{formatDate this.recordedAt}}
+                                {{#if this.udders.length}}
+                                    Ubres: {{join this.udders ", "}}
+                                {{/if}}
+                            </span>
+                            <button
+                                type="button"
+                                class="culture-event-delete culture-event-delete-icon"
+                                data-id="{{../_id}}"
+                                data-event-id="{{this.eventId}}"
+                                data-result="{{this.result}}"
+                                data-date-label="{{formatDate this.recordedAt}}"
+                                data-udders-label="{{join this.udders ", "}}"
+                                aria-label="Eliminar evento"
+                                title="Eliminar evento"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v10h-2V9zm4 0h2v10h-2V9zM7 9h2v10H7V9zM6 21h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2z"/>
+                                </svg>
+                            </button>
+                        </div>
                     {{/each}}
                 </div>
                     <button class="link-button danger culture-delete" data-id="{{this._id}}">Eliminar</button>
