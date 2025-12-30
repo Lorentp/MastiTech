@@ -54,13 +54,13 @@ document.addEventListener("click", async (e) => {
     }
   }
 
-  if (e.target.classList.contains("culture-event-delete")) {
-    const button = e.target.closest(".culture-event-delete");
-    const cultureId = button?.dataset?.id;
-    const eventId = button?.dataset?.eventId;
-    const result = button?.dataset?.result;
-    const dateLabel = button?.dataset?.dateLabel;
-    const uddersLabel = button?.dataset?.uddersLabel;
+  const eventDeleteButton = e.target.closest(".culture-event-delete");
+  if (eventDeleteButton) {
+    const cultureId = eventDeleteButton.dataset?.id;
+    const eventId = eventDeleteButton.dataset?.eventId;
+    const result = eventDeleteButton.dataset?.result;
+    const dateLabel = eventDeleteButton.dataset?.dateLabel;
+    const uddersLabel = eventDeleteButton.dataset?.uddersLabel;
 
     if (!cultureId || !eventId) {
       return Swal.fire("Error", "No se pudo identificar el evento", "error");

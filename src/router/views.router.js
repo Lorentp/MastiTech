@@ -53,7 +53,10 @@ router.get("/cultivos", async (req, res) => {
         }
         const userId = req.session.user._id;
         const culturesDb = await cultureManager.getCultures(userId);
-        const cultures = culturesDb.map(c => {
+        const culturesSorted = [...culturesDb].sort((a, b) =>
+            (a.name || "").localeCompare(b.name || "", "es", { numeric: true, sensitivity: "base" })
+        );
+        const cultures = culturesSorted.map(c => {
             const obj = c.toObject();
             const events = Array.isArray(obj.events) ? [...obj.events].sort((a, b) => new Date(b.recordedAt || 0) - new Date(a.recordedAt || 0)) : [];
             const positives = events.filter(e => e.result === "positivo");
