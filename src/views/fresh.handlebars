@@ -1,0 +1,197 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/home" class="link-button">Volver al inicio</a>
+    <a href="/recien-paridas/animales" class="link-button">Buscador recien paridas</a>
+    <a href="/cultivos" class="link-button">Cultivos</a>
+</nav>
+
+<h1>Recien paridas</h1>
+
+<div class="add-page-buttons">
+    <button class="add-page-button" id="addFreshCowButton">Cargar animal</button>
+    <button class="add-page-button" id="addFreshEventButton">Agregar evento</button>
+    <button class="add-page-button" id="addFlujeoTypeButton">Agregar endometritis</button>
+</div>
+
+<div class="hidden" id="addFreshCowForm">
+    <div class="form-container">
+        <form id="fresh-cow-form">
+            <label for="fresh-name">Caravana del animal:</label>
+            <input type="text" id="fresh-name" name="name" required>
+
+            <label for="fresh-calvingDate">Fecha de paricion:</label>
+            <input type="date" id="fresh-calvingDate" name="calvingDate" required>
+
+            <label for="fresh-eventStartTurn">Turno de arranque (evento):</label>
+            <select id="fresh-eventStartTurn" name="eventStartTurn" required>
+                <option value="morning">Manana</option>
+                <option value="afternoon">Tarde</option>
+            </select>
+
+            <label for="fresh-eventId">Evento:</label>
+            <select id="fresh-eventId" name="eventId" required>
+                <option value="">Seleccione un evento</option>
+                {{#each events}}
+                    <option value="{{this._id}}">{{this.title}} ({{this.duration}} turnos)</option>
+                {{/each}}
+            </select>
+
+            <button type="submit" class="link-button">Guardar</button>
+        </form>
+    </div>
+</div>
+
+<div class="hidden" id="addFreshEventForm">
+    <div class="form-container">
+        <form id="fresh-event-form">
+            <label for="fresh-event-title">Nombre del evento:</label>
+            <input type="text" id="fresh-event-title" name="title" required>
+            <label for="fresh-event-duration">Duracion (turnos de 12h):</label>
+            <input type="number" id="fresh-event-duration" name="duration" min="1" required>
+            <button type="submit" class="link-button">Guardar evento</button>
+        </form>
+    </div>
+</div>
+
+<div class="hidden" id="addFlujeoTypeForm">
+    <div class="form-container">
+        <form id="flujeo-type-form">
+            <label for="flujeo-title">Endometritis:</label>
+            <input type="text" id="flujeo-title" name="title" required>
+            <button type="submit" class="link-button">Guardar endometritis</button>
+        </form>
+    </div>
+</div>
+
+<h2>En evento</h2>
+{{#if inEvent.length}}
+    <div class="treated-container compact-grid">
+    {{#each inEvent}}
+        <div class="finished-milk-discard-card compact-card">
+            <div class="card-header compact-header">
+                <h3>{{this.name}}</h3>
+                <span class="events-badge">Paricion: {{formatDate this.calvingDate}}</span>
+            </div>
+            <div class="card-body compact-body">
+                <p><strong>Evento:</strong> {{this.eventSnapshot.title}}</p>
+                <p><strong>Arranque:</strong> {{formatDate this.eventStartDate}} ({{formatTurn this.eventStartTurn}})</p>
+                <p><strong>Fin estimado:</strong> {{formatDate this.eventEndDate}}</p>
+                <p><strong>Turno actual:</strong> {{this.eventCurrentTurn}} / {{this.eventSnapshot.duration}}</p>
+            </div>
+        </div>
+    {{/each}}
+    </div>
+{{else}}
+    <div class="form-container"><p>No hay animales en evento.</p></div>
+{{/if}}
+
+<h2>A finalizar</h2>
+{{#if toFinalize.length}}
+    <div class="treated-container compact-grid">
+    {{#each toFinalize}}
+        <div class="finished-milk-discard-card compact-card">
+            <div class="card-header compact-header">
+                <h3>{{this.name}}</h3>
+                <span class="events-badge">Paricion: {{formatDate this.calvingDate}}</span>
+            </div>
+            <div class="card-body compact-body">
+                <p><strong>Evento:</strong> {{this.eventSnapshot.title}}</p>
+                <p><strong>Arranco:</strong> {{formatDate this.eventStartDate}} ({{formatTurn this.eventStartTurn}})</p>
+                <p><strong>Turnos totales:</strong> {{this.eventSnapshot.duration}}</p>
+                <p><strong>Estado:</strong> Evento terminado, cargar endometritis</p>
+                <hr>
+                <form class="finalize-event-form">
+                    <input type="hidden" name="cowId" value="{{this._id}}">
+                    <input type="hidden" name="flujeoStartDate" class="auto-today" value="">
+                    <input type="hidden" name="flujeoStartTurn" value="morning">
+                    <label>Endometritis:</label>
+                    <select name="flujeoTypeId" required>
+                        <option value="">Seleccione</option>
+                        {{#each ../flujeoTypes}}
+                            <option value="{{this._id}}">{{this.title}}</option>
+                        {{/each}}
+                    </select>
+
+                    <label>Nivel cetosis (informativo):</label>
+                    <input type="text" name="ketosisLevel" placeholder="Ej: 0 / leve / moderada">
+
+                    <label class="checkbox-inline">
+                        Empezar tratamiento con medicacion
+                        <input type="checkbox" name="startMedication">
+                    </label>
+
+                    <div class="fresh-medication-block hidden">
+                        <label>Tratamiento:</label>
+                        <select name="treatmentId">
+                            <option value="">Seleccione un tratamiento</option>
+                            {{#each ../treatments}}
+                                <option value="{{this._id}}">{{this.title}}</option>
+                            {{/each}}
+                        </select>
+                        <label>Dia inicio (tratamiento):</label>
+                        <input type="date" name="treatmentStartDate">
+                        <label>Turno inicio (tratamiento):</label>
+                        <select name="treatmentStartTurn">
+                            <option value="morning">Manana</option>
+                            <option value="afternoon">Tarde</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="link-button">Guardar endometritis</button>
+                </form>
+            </div>
+        </div>
+    {{/each}}
+    </div>
+{{else}}
+    <div class="form-container"><p>No hay animales para finalizar.</p></div>
+{{/if}}
+
+<h2>Finalizados</h2>
+{{#if finished.length}}
+    <div class="treated-container compact-grid">
+    {{#each finished}}
+        <div class="finished-milk-discard-card compact-card">
+            <div class="card-header compact-header">
+                <h3>{{this.name}}</h3>
+            </div>
+            <div class="card-body compact-body">
+                <p><strong>Evento:</strong> {{this.eventSnapshot.title}}</p>
+                <p><strong>Endometritis:</strong> {{#if this.flujeoSnapshot.title}}{{this.flujeoSnapshot.title}}{{else}}N/D{{/if}}</p>
+                {{#if this.flujeoStartDate}}<p><strong>Fecha endometritis:</strong> {{formatDate this.flujeoStartDate}}</p>{{/if}}
+                <p><strong>Cetosis:</strong> {{#if this.ketosisLevel}}{{this.ketosisLevel}}{{else}}N/D{{/if}}</p>
+                {{#if this.medicationTreatment.treatmentSnapshot}}
+                    <p><strong>Tratamiento:</strong> {{this.medicationTreatment.treatmentSnapshot.title}}</p>
+                    {{#if this.medicationTreatment.endDateDiscardMilk}}<p><strong>Fin descarte:</strong> {{formatDate this.medicationTreatment.endDateDiscardMilk}}</p>{{/if}}
+                {{/if}}
+
+                {{#unless this.ketosisLevel}}
+                <hr>
+                <form class="finalize-flujeo-form">
+                    <input type="hidden" name="cowId" value="{{this._id}}">
+                    <label>Nivel cetosis (informativo):</label>
+                    <input type="text" name="ketosisLevel" placeholder="Ej: 0 / leve / moderada" value="{{this.ketosisLevel}}">
+                    <button type="submit" class="link-button">Cargar cetosis</button>
+                </form>
+                {{/unless}}
+
+                <hr>
+                <form class="delete-flujeo-form">
+                    <input type="hidden" name="cowId" value="{{this._id}}">
+                    <button type="submit" class="link-button danger">Eliminar endometritis</button>
+                </form>
+                <form class="delete-fresh-cow-form">
+                    <input type="hidden" name="cowId" value="{{this._id}}">
+                    <button type="submit" class="link-button danger">Eliminar animal</button>
+                </form>
+            </div>
+        </div>
+    {{/each}}
+    </div>
+{{else}}
+    <div class="form-container"><p>No hay registros finalizados.</p></div>
+{{/if}}
+
+<script src="/js/fresh/freshUI.js"></script>
+<script src="/js/fresh/freshForms.js"></script>

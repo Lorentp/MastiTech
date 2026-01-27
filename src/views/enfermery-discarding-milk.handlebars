@@ -3,6 +3,7 @@
 <nav>
     <a href="/home" class="link-button">Volver al inicio</a>
     <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
+    <a href="/recien-paridas" class="link-button">Recien paridas</a>
     <a href="/liberar-leche" class="link-button">Animales para liberar</a>
     <a href="/cultivos" class="link-button">Cultivos</a>
 </nav>
@@ -46,6 +47,11 @@
                     <p class="current-turn-info">
                         Turno actual del rodeo: <strong>{{this.currentTurn}}</strong>
                     </p>
+                    <div style="margin-top: 0.75rem;">
+                        <button type="button" class="finalize-button finalize-milk-discard-early" data-id="{{this._id}}">
+                            Liberar antes
+                        </button>
+                    </div>
                 </div>
             </div>
         {{/each}}
@@ -57,3 +63,5 @@
         </p>
     </div>
 {{/if}}
+
+<script src="/js/enfermery/finalizeMilkDiscardEarly.js"></script>

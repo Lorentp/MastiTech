@@ -7,6 +7,21 @@ const moment = require("moment-timezone")
 
 class CowManager {
 
+    applyScheduleOverrides(schedule, overrides) {
+        if (!Array.isArray(schedule)) return schedule;
+        if (!Array.isArray(overrides) || overrides.length === 0) return schedule;
+
+        overrides.forEach((o) => {
+            const turn = parseInt(o?.turn, 10);
+            if (!Number.isFinite(turn) || turn < 1) return;
+            const idx = turn - 1;
+            if (!schedule[idx]) schedule[idx] = [];
+            schedule[idx] = Array.isArray(o.meds) ? o.meds : [];
+        });
+
+        return schedule;
+    }
+
     // Obtener el tratamiento actual de una vaca (último no finalizado)
     getCurrentTreatmentEntry(cow) {
         const history = Array.isArray(cow.treatmentsHistory) ? cow.treatmentsHistory : [];
@@ -136,7 +151,9 @@ class CowManager {
             milkDiscardCompletedAt: null,
             isReMastitis,
             reMastitisPreviousTreatmentTitle: reMastitisMeta?.previousTreatment || null,
-            reMastitisPreviousEndDate: reMastitisMeta?.previousTreatmentEndDate || null
+            reMastitisPreviousEndDate: reMastitisMeta?.previousTreatmentEndDate || null,
+            countedAsEvent: skipEvent ? false : true,
+            scheduleOverrides: []
         };
 
         // 8. PUSH SEGURO (gracias al default: [] en el modelo)
@@ -156,6 +173,10 @@ class CowManager {
 
         // 10. Devolvemos la vaca con datos útiles para el frontend
         const activeEntry = cow.treatmentsHistory[cow.treatmentsHistory.length - 1];
+        const scheduleWithOverrides = this.applyScheduleOverrides(
+            TreatmentsManager.generateMedicationSchedule(activeEntry.treatmentSnapshot),
+            activeEntry.scheduleOverrides
+        );
 
         return {
             success: true,
@@ -164,7 +185,7 @@ class CowManager {
                 currentTreatmentSnapshot: activeEntry.treatmentSnapshot,
                 currentTreatmentEntry: activeEntry,
                 currentTurn: this.calculateCurrentTurn(activeEntry.startDate, activeEntry.startTurn),
-                medicationSchedule: TreatmentsManager.generateMedicationSchedule(activeEntry.treatmentSnapshot)
+                medicationSchedule: scheduleWithOverrides
             },
             reMastitisWarning: null
         };
@@ -197,13 +218,17 @@ class CowManager {
         }
 
         const updatedEntry = this.getCurrentTreatmentEntry(cow);
+        const scheduleWithOverrides = this.applyScheduleOverrides(
+            TreatmentsManager.generateMedicationSchedule(updatedEntry.treatmentSnapshot),
+            updatedEntry.scheduleOverrides
+        );
 
         return {
             success: true,
             cow: {
                 ...cow.toObject(),
                 currentTurn,
-                medicationSchedule: TreatmentsManager.generateMedicationSchedule(updatedEntry.treatmentSnapshot)
+                medicationSchedule: scheduleWithOverrides
             }
         };
     }
@@ -226,8 +251,97 @@ class CowManager {
         if (!lastEntry) throw new Error("No hay descarte pendiente");
 
         lastEntry.milkDiscardCompletedAt = new Date();
-        await cow.save();
+    await cow.save();
 
+    return cow;
+    }
+
+    // Finalizar tratamiento antes y recalcular fecha de descarte desde "ahora"
+    async finalizeTreatmentEarly(cowId, userId) {
+        const cow = await CowModel.findOne({ _id: cowId, owner: userId });
+        if (!cow) throw new Error("Vaca no encontrada");
+
+        const currentEntry = this.getCurrentTreatmentEntry(cow);
+        if (!currentEntry) throw new Error("No hay tratamiento activo");
+
+        const now = moment().tz("America/Argentina/Buenos_Aires");
+        const snapshot = currentEntry.treatmentSnapshot;
+        const discardTurns = snapshot?.milkDiscardTurns;
+        if (typeof discardTurns !== "number") {
+            throw new Error("Tratamiento inválido: falta milkDiscardTurns");
+        }
+
+        currentEntry.finished = true;
+        currentEntry.endDate = now.toDate();
+        currentEntry.endDateDiscardMilk = now.clone().add(discardTurns * 12, "hours").toDate();
+        currentEntry.milkDiscardCompletedAt = null;
+
+        await cow.save();
+        return cow;
+    }
+
+    // Liberar animal antes (finaliza descarte de leche aunque no haya llegado la fecha)
+    async finalizeMilkDiscardEarly(cowId, userId) {
+        const cow = await CowModel.findOne({ _id: cowId, owner: userId });
+        if (!cow) throw new Error("Vaca no encontrada");
+
+        const pending = (cow.treatmentsHistory || [])
+            .filter(t => !t.milkDiscardCompletedAt && t.endDateDiscardMilk)
+            .sort((a, b) => new Date(b.endDateDiscardMilk || b.endDate) - new Date(a.endDateDiscardMilk || a.endDate))[0];
+
+        if (!pending) throw new Error("No hay descarte pendiente");
+
+        pending.milkDiscardCompletedAt = moment().tz("America/Argentina/Buenos_Aires").toDate();
+        await cow.save();
+        return cow;
+    }
+
+    // Agregar 1 día (2 turnos) de tratamiento, copiando el día 1 (turnos 1 y 2)
+    async addTreatmentDay(cowId, userId) {
+        const cow = await CowModel.findOne({ _id: cowId, owner: userId });
+        if (!cow) throw new Error("Vaca no encontrada o sin tratamiento activo");
+
+        const entry = this.getCurrentTreatmentEntry(cow);
+        if (!entry) throw new Error("No hay tratamiento activo");
+
+        const snapshot = entry.treatmentSnapshot;
+        if (!snapshot || typeof snapshot.duration !== "number") {
+            throw new Error("Tratamiento inválido");
+        }
+
+        const baseSchedule = this.applyScheduleOverrides(
+            TreatmentsManager.generateMedicationSchedule(snapshot),
+            entry.scheduleOverrides
+        );
+        const day1Turn1 = Array.isArray(baseSchedule[0]) ? baseSchedule[0] : [];
+        const day1Turn2 = Array.isArray(baseSchedule[1]) ? baseSchedule[1] : [];
+
+        const oldDuration = snapshot.duration;
+        const newDuration = oldDuration + 2;
+        snapshot.duration = newDuration;
+
+        // Extiende fechas 24h y arrastra fin de descarte 24h para mantener consistencia con la extensión
+        if (entry.endDate) {
+            entry.endDate = moment(entry.endDate).tz("America/Argentina/Buenos_Aires").add(24, "hours").toDate();
+        }
+        if (entry.endDateDiscardMilk) {
+            entry.endDateDiscardMilk = moment(entry.endDateDiscardMilk).tz("America/Argentina/Buenos_Aires").add(24, "hours").toDate();
+        }
+
+        const overrides = Array.isArray(entry.scheduleOverrides) ? entry.scheduleOverrides : [];
+        const upsert = (turn, meds) => {
+            const i = overrides.findIndex((o) => String(o.turn) === String(turn));
+            const payload = { turn, meds: Array.isArray(meds) ? meds : [] };
+            if (i === -1) overrides.push(payload);
+            else overrides[i] = payload;
+        };
+
+        upsert(oldDuration + 1, day1Turn1);
+        upsert(oldDuration + 2, day1Turn2);
+
+        entry.scheduleOverrides = overrides;
+
+        await cow.save();
         return cow;
     }
     async getFinishedMilkDiscardCows(userId) {
@@ -294,7 +408,10 @@ class CowManager {
             if (!activeEntry) continue;
             const currentTurn = this.calculateCurrentTurn(activeEntry.startDate, activeEntry.startTurn);
 
-            const medicationSchedule = TreatmentsManager.generateMedicationSchedule(activeEntry.treatmentSnapshot);
+            const medicationSchedule = this.applyScheduleOverrides(
+                TreatmentsManager.generateMedicationSchedule(activeEntry.treatmentSnapshot),
+                activeEntry.scheduleOverrides
+            );
             const medsForTurn = medicationSchedule[currentTurn - 1] || [];
             const isAutoTreated = medsForTurn.length === 0;
 
@@ -442,6 +559,42 @@ class CowManager {
             console.error("Error al eliminar animal:", error);
             return { success: false, message: "Error al eliminar el animal" };
         }
+    }
+
+
+    // Eliminar un tratamiento específico del historial por id (solo ese registro)
+    async deleteTreatmentEntry(cowId, entryId, owner) {
+        const cow = await CowModel.findOne({ _id: cowId, owner });
+        if (!cow) throw new Error("Animal no encontrado");
+
+        const history = Array.isArray(cow.treatmentsHistory) ? cow.treatmentsHistory : [];
+        const idx = history.findIndex((t) => String(t._id) === String(entryId));
+        if (idx === -1) throw new Error("Tratamiento no encontrado");
+
+        const entry = history[idx];
+        const uddersCount = Array.isArray(entry.udders) ? entry.udders.length : 0;
+        const shouldDecrementEvent =
+            entry.countedAsEvent === true ||
+            (entry.countedAsEvent === null && uddersCount > 0);
+
+        history.splice(idx, 1);
+        cow.treatmentsHistory = history;
+
+        if (shouldDecrementEvent) {
+            cow.events = Math.max(0, (cow.events || 0) - 1);
+        }
+
+        if (Array.isArray(cow.lastTreatmentsSummary) && entry?.treatmentSnapshot?.title && entry?.endDate) {
+            const title = entry.treatmentSnapshot.title;
+            const endTime = new Date(entry.endDate).getTime();
+            cow.lastTreatmentsSummary = cow.lastTreatmentsSummary.filter((t) => {
+                const tEnd = t?.endDate ? new Date(t.endDate).getTime() : null;
+                return !(t?.title === title && tEnd === endTime);
+            });
+        }
+
+        await cow.save();
+        return { cow, decrementedEvent: shouldDecrementEvent };
     }
 
 }

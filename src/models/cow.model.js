@@ -29,6 +29,15 @@ const treatmentEntrySchema = new mongoose.Schema({
     isReMastitis: { type: Boolean, default: false },
     reMastitisPreviousTreatmentTitle: { type: String },
     reMastitisPreviousEndDate: { type: Date }
+    ,
+    countedAsEvent: { type: Boolean, default: null },
+    scheduleOverrides: {
+        type: [{
+            turn: { type: Number, required: true }, // 1-based turn
+            meds: [{ type: String }]
+        }],
+        default: []
+    }
 }, { timestamps: true });
 
 

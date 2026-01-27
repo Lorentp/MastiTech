@@ -24,7 +24,15 @@
             <option value="negativo">Negativo</option>
             <option value="sin desarrollo">Sin desarrollo</option>
             <option value="positivo">Positivo</option>
+            <option value="contaminada">Contaminada</option>
         </select>
+
+        <div id="contaminated-extra" class="hidden contaminated-extra">
+            <label class="checkbox-inline">
+                Contaminada con tratamiento (Marcar solo si va)
+                <input type="checkbox" id="contaminated-treatment" name="contaminatedWithTreatment">
+            </label>
+        </div>
 
         <button type="submit" class="link-button">Guardar cultivo / evento</button>
     </form>

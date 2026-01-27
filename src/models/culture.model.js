@@ -4,7 +4,7 @@ const cultureResultSchema = new mongoose.Schema(
   {
     result: {
       type: String,
-      enum: ["pendiente", "negativo", "sin desarrollo", "positivo"],
+      enum: ["pendiente", "negativo", "sin desarrollo", "positivo", "contaminada"],
       required: true,
       default: "pendiente",
     },
@@ -13,6 +13,7 @@ const cultureResultSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    contaminatedWithTreatment: { type: Boolean, default: null }
   }
 );
 

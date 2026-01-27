@@ -1,0 +1,42 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/recien-paridas" class="link-button">Volver</a>
+    <a href="/home" class="link-button">Inicio</a>
+</nav>
+
+<div class="form-container">
+    <h2>Buscar recien paridas</h2>
+    <div class="filter-row">
+        <label for="fresh-search">Buscar por caravana:</label>
+        <input type="text" id="fresh-search" placeholder="Ej: 1234">
+    </div>
+    <div class="filter-row">
+        <label for="fresh-calving-filter">Filtrar por fecha parición:</label>
+        <input type="date" id="fresh-calving-filter">
+    </div>
+</div>
+
+<h1>Animales recien paridas</h1>
+
+{{#if freshCows.length}}
+    <div class="treated-container compact-grid">
+    {{#each freshCows}}
+        <div class="finished-milk-discard-card compact-card fresh-card" data-name="{{this.name}}" data-calving="{{this.calvingDateISO}}">
+            <div class="card-header compact-header">
+                <h3>{{this.name}}</h3>
+            </div>
+            <div class="card-body compact-body">
+                <p><strong>Parición:</strong> {{formatDate this.calvingDate}}</p>
+                <p><strong>Evento:</strong> {{this.eventSnapshot.title}}</p>
+                <p><strong>Endometritis:</strong> {{#if this.flujeoSnapshot.title}}{{this.flujeoSnapshot.title}}{{else}}Pendiente{{/if}}</p>
+                <p><strong>Cetosis:</strong> {{#if this.ketosisLevel}}{{this.ketosisLevel}}{{else}}N/D{{/if}}</p>
+            </div>
+        </div>
+    {{/each}}
+    </div>
+{{else}}
+    <p class="no-cows-message">Todavía no hay registros.</p>
+{{/if}}
+
+<script src="/js/fresh/freshSearch.js"></script>

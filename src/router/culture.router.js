@@ -10,7 +10,7 @@ router.post("/add", async (req, res) => {
     }
 
     const owner = req.session.user._id;
-    const { name, udders, startDate, result } = req.body;
+    const { name, udders, startDate, result, contaminatedWithTreatment } = req.body;
 
     const { culture, created } = await cultureManager.addCulture({
       owner,
@@ -18,6 +18,9 @@ router.post("/add", async (req, res) => {
       udders,
       startDate,
       result,
+      contaminatedWithTreatment: result === "contaminada"
+        ? contaminatedWithTreatment === true || contaminatedWithTreatment === "true"
+        : null,
     });
 
     res.status(200).json({
@@ -42,10 +45,10 @@ router.post("/:id/result", async (req, res) => {
     }
 
     const { id } = req.params;
-    const { result } = req.body;
+    const { result, contaminatedWithTreatment } = req.body;
     const owner = req.session.user._id;
 
-    const culture = await cultureManager.addResult(id, owner, result);
+    const culture = await cultureManager.addResult(id, owner, result, contaminatedWithTreatment === true || contaminatedWithTreatment === "true");
     res.status(200).json({ success: true, data: culture });
   } catch (error) {
     res.status(400).json({

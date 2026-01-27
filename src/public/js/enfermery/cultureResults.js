@@ -3,13 +3,15 @@ document.addEventListener("click", async (e) => {
     const id = e.target.dataset.id;
     const select = document.querySelector(`.culture-result-select[data-id="${id}"]`);
     const result = select?.value;
+    const check = document.querySelector(`.contaminated-check[data-id="${id}"]`);
+    const contaminatedWithTreatment = result === "contaminada" && check ? check.checked : null;
     if (!result) return;
 
     try {
       const res = await fetch(`/culture/${id}/result`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ result }),
+        body: JSON.stringify({ result, contaminatedWithTreatment }),
       });
       const json = await res.json();
       if (json.success) {
@@ -102,3 +104,25 @@ document.addEventListener("click", async (e) => {
     }
   }
 });
+
+// Mostrar/ocultar check de tratamiento cuando se elige "contaminada"
+(() => {
+  const selects = document.querySelectorAll(".culture-result-select");
+  selects.forEach((select) => {
+    const id = select.dataset.id;
+    const container = document.querySelector(`.contaminated-inline[data-container-for="${id}"]`);
+    const check = document.querySelector(`.contaminated-check[data-id="${id}"]`);
+
+    const toggle = () => {
+      if (select.value === "contaminada") {
+        container?.classList.remove("hidden");
+      } else {
+        container?.classList.add("hidden");
+        if (check) check.checked = false;
+      }
+    };
+
+    select.addEventListener("change", toggle);
+    toggle();
+  });
+})();

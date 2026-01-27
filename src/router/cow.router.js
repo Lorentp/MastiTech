@@ -139,4 +139,67 @@ router.post("/finalize-milk-discard/:id", async (req, res) => {
     }
 });
 
+router.post("/finalize-treatment-early/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.session.user._id;
+
+        const cow = await cowManager.finalizeTreatmentEarly(id, userId);
+
+        res.json({
+            success: true,
+            cow,
+            message: "Tratamiento finalizado antes"
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
+router.post("/finalize-milk-discard-early/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.session.user._id;
+
+        const cow = await cowManager.finalizeMilkDiscardEarly(id, userId);
+
+        res.json({
+            success: true,
+            cow,
+            message: "Animal liberado antes"
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
+router.post("/:cowId/treatment/:entryId/delete", async (req, res) => {
+    try {
+        const { cowId, entryId } = req.params;
+        const owner = req.session.user._id;
+
+        const result = await cowManager.deleteTreatmentEntry(cowId, entryId, owner);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
+router.post("/add-treatment-day/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.session.user._id;
+
+        const cow = await cowManager.addTreatmentDay(id, userId);
+
+        res.json({
+            success: true,
+            cow,
+            message: "Día de tratamiento agregado"
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
 module.exports = router
