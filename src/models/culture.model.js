@@ -13,6 +13,9 @@ const cultureResultSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+    // Flag genérico: si el evento fue con tratamiento o no
+    withTreatment: { type: Boolean, default: false },
+    // Legacy (antes solo existía para "contaminada")
     contaminatedWithTreatment: { type: Boolean, default: null }
   }
 );
@@ -36,6 +39,13 @@ const cultureSchema = new mongoose.Schema(
 
 cultureSchema.pre("save", function (next) {
   if (Array.isArray(this.events)) {
+    // Migración suave: si viene legacy contaminatedWithTreatment y falta withTreatment, lo copiamos.
+    this.events.forEach((e) => {
+      if (typeof e?.withTreatment !== "boolean" && typeof e?.contaminatedWithTreatment === "boolean") {
+        e.withTreatment = e.contaminatedWithTreatment;
+      }
+    });
+
     // Ordenamos por fecha para que el ultimo sea el mas reciente
     this.events.sort((a, b) => new Date(a.recordedAt || 0) - new Date(b.recordedAt || 0));
     this.eventsCount = this.events.length;

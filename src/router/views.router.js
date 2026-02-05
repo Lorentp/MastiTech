@@ -84,7 +84,9 @@ router.get("/cultivos", async (req, res) => {
                     recordedAtISO: e.recordedAt ? new Date(e.recordedAt).toISOString() : "",
                     eventId: e._id ? String(e._id) : "",
                     isContaminated: e.result === "contaminada",
-                    contaminatedWithTreatment: typeof e.contaminatedWithTreatment === "boolean" ? e.contaminatedWithTreatment : null,
+                    withTreatment: typeof e.withTreatment === "boolean"
+                      ? e.withTreatment
+                      : (typeof e.contaminatedWithTreatment === "boolean" ? e.contaminatedWithTreatment : false),
                     udders: Array.isArray(e.udders) ? e.udders : []
                 })),
                 latestEvent: latestEvent
@@ -95,9 +97,9 @@ router.get("/cultivos", async (req, res) => {
                         : "",
                       eventId: latestEvent._id ? String(latestEvent._id) : "",
                       isContaminated: latestEvent.result === "contaminada",
-                      contaminatedWithTreatment: typeof latestEvent.contaminatedWithTreatment === "boolean"
-                        ? latestEvent.contaminatedWithTreatment
-                        : null,
+                      withTreatment: typeof latestEvent.withTreatment === "boolean"
+                        ? latestEvent.withTreatment
+                        : (typeof latestEvent.contaminatedWithTreatment === "boolean" ? latestEvent.contaminatedWithTreatment : false),
                     }
                   : null
             };

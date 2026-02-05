@@ -3,7 +3,7 @@ const moment = require("moment-timezone");
 const mongoose = require("mongoose");
 
 class CultureManager {
-  async addCulture({ owner, name, udders, startDate, result, contaminatedWithTreatment }) {
+  async addCulture({ owner, name, udders, startDate, result, withTreatment }) {
     if (!owner || !name || !startDate) {
       throw new Error("Datos obligatorios faltantes");
     }
@@ -26,15 +26,8 @@ class CultureManager {
     const safeResult = validResults.includes(normalizedResult)
       ? normalizedResult
       : "pendiente";
-    const contaminatedFlag =
-      normalizedResult === "contaminada"
-        ? (() => {
-            if (typeof contaminatedWithTreatment !== "boolean") {
-              throw new Error("Debe indicar si la contaminación tuvo tratamiento");
-            }
-            return contaminatedWithTreatment;
-          })()
-        : null;
+
+    const withTreatmentFlag = typeof withTreatment === "boolean" ? withTreatment : false;
 
     // Si ya existe el cultivo de ese animal, solo agregamos un nuevo evento
     const existing = await CultureModel.findOne({ owner, name: normalizedName });
@@ -43,7 +36,13 @@ class CultureManager {
         const merged = new Set([...(existing.udders || []), ...normalizedUdders]);
         existing.udders = Array.from(merged);
       }
-      existing.events.push({ result: safeResult, recordedAt: start, udders: normalizedUdders, contaminatedWithTreatment: contaminatedFlag });
+      existing.events.push({
+        result: safeResult,
+        recordedAt: start,
+        udders: normalizedUdders,
+        withTreatment: withTreatmentFlag,
+        contaminatedWithTreatment: safeResult === "contaminada" ? withTreatmentFlag : null,
+      });
       if (existing.startDate && start < existing.startDate) {
         existing.startDate = start;
       }
@@ -56,20 +55,23 @@ class CultureManager {
       name: normalizedName,
       udders: normalizedUdders,
       startDate: start,
-      events: [{ result: safeResult, recordedAt: start, udders: normalizedUdders, contaminatedWithTreatment: contaminatedFlag }],
+      events: [{
+        result: safeResult,
+        recordedAt: start,
+        udders: normalizedUdders,
+        withTreatment: withTreatmentFlag,
+        contaminatedWithTreatment: safeResult === "contaminada" ? withTreatmentFlag : null,
+      }],
     });
 
     await culture.save();
     return { culture, created: true };
   }
 
-  async addResult(cultureId, owner, result, contaminatedWithTreatmentParam = null) {
+  async addResult(cultureId, owner, result, withTreatmentParam = null) {
     const valid = ["pendiente", "negativo", "sin desarrollo", "positivo", "contaminada"];
     if (!valid.includes(result)) {
       throw new Error("Resultado invalido");
-    }
-    if (result === "contaminada" && contaminatedWithTreatmentParam === null) {
-      throw new Error("Debe indicar si la contaminación tuvo tratamiento");
     }
 
     const culture = await CultureModel.findOne({ _id: cultureId, owner });
@@ -82,19 +84,24 @@ class CultureManager {
     const lastIdx = events.length - 1;
     const lastUdders = lastIdx >= 0 && Array.isArray(events[lastIdx].udders) ? events[lastIdx].udders : culture.udders;
 
-    const contaminatedWithTreatment = result === "contaminada"
-      ? contaminatedWithTreatmentParam === true
-      : null;
+    const withTreatment = withTreatmentParam === true;
 
     if (lastIdx >= 0 && events[lastIdx].result === "pendiente") {
       // Reemplazamos el evento pendiente por el nuevo resultado
       events[lastIdx].result = result;
       events[lastIdx].recordedAt = now;
       events[lastIdx].udders = lastUdders;
-      events[lastIdx].contaminatedWithTreatment = contaminatedWithTreatment;
+      events[lastIdx].withTreatment = withTreatment;
+      events[lastIdx].contaminatedWithTreatment = result === "contaminada" ? withTreatment : null;
     } else {
       // Agregamos un nuevo evento
-      events.push({ result, udders: lastUdders, recordedAt: now, contaminatedWithTreatment });
+      events.push({
+        result,
+        udders: lastUdders,
+        recordedAt: now,
+        withTreatment,
+        contaminatedWithTreatment: result === "contaminada" ? withTreatment : null,
+      });
     }
 
     culture.events = events;
@@ -177,6 +184,33 @@ class CultureManager {
     }
     culture.markModified("events");
 
+    await culture.save();
+    return culture;
+  }
+
+  async updateEventById(cultureId, owner, eventId, { withTreatment }) {
+    if (typeof withTreatment !== "boolean") {
+      throw new Error("withTreatment inválido");
+    }
+
+    const id = mongoose.Types.ObjectId.isValid(eventId)
+      ? new mongoose.Types.ObjectId(eventId)
+      : null;
+    if (!id) throw new Error("eventId invalido");
+
+    const culture = await CultureModel.findOne({ _id: cultureId, owner });
+    if (!culture) throw new Error("Cultivo no encontrado");
+
+    const events = Array.isArray(culture.events) ? culture.events : [];
+    const event = events.find((e) => String(e._id) === String(id));
+    if (!event) throw new Error("Evento no encontrado");
+
+    event.withTreatment = withTreatment;
+    if (event.result === "contaminada") {
+      event.contaminatedWithTreatment = withTreatment;
+    }
+
+    culture.markModified("events");
     await culture.save();
     return culture;
   }

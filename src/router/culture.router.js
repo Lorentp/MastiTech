@@ -10,7 +10,7 @@ router.post("/add", async (req, res) => {
     }
 
     const owner = req.session.user._id;
-    const { name, udders, startDate, result, contaminatedWithTreatment } = req.body;
+    const { name, udders, startDate, result, withTreatment, contaminatedWithTreatment } = req.body;
 
     const { culture, created } = await cultureManager.addCulture({
       owner,
@@ -18,9 +18,10 @@ router.post("/add", async (req, res) => {
       udders,
       startDate,
       result,
-      contaminatedWithTreatment: result === "contaminada"
-        ? contaminatedWithTreatment === true || contaminatedWithTreatment === "true"
-        : null,
+      withTreatment:
+        withTreatment === true ||
+        withTreatment === "true" ||
+        (contaminatedWithTreatment === true || contaminatedWithTreatment === "true"),
     });
 
     res.status(200).json({
@@ -45,10 +46,17 @@ router.post("/:id/result", async (req, res) => {
     }
 
     const { id } = req.params;
-    const { result, contaminatedWithTreatment } = req.body;
+    const { result, withTreatment, contaminatedWithTreatment } = req.body;
     const owner = req.session.user._id;
 
-    const culture = await cultureManager.addResult(id, owner, result, contaminatedWithTreatment === true || contaminatedWithTreatment === "true");
+    const culture = await cultureManager.addResult(
+      id,
+      owner,
+      result,
+      withTreatment === true ||
+        withTreatment === "true" ||
+        (contaminatedWithTreatment === true || contaminatedWithTreatment === "true")
+    );
     res.status(200).json({ success: true, data: culture });
   } catch (error) {
     res.status(400).json({
@@ -129,6 +137,26 @@ router.post("/:id/event/:eventId/delete", async (req, res) => {
       success: false,
       message: error.message || "Error al eliminar evento",
     });
+  }
+});
+
+router.post("/:id/event/:eventId/update", async (req, res) => {
+  try {
+    if (!req.session?.login || !req.session?.user?._id) {
+      return res.status(401).json({ success: false, message: "No autorizado" });
+    }
+
+    const { id, eventId } = req.params;
+    const owner = req.session.user._id;
+    const { withTreatment } = req.body;
+
+    const culture = await cultureManager.updateEventById(id, owner, eventId, {
+      withTreatment: withTreatment === true || withTreatment === "true",
+    });
+
+    res.status(200).json({ success: true, data: culture });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message || "Error al actualizar evento" });
   }
 });
 

@@ -3,15 +3,15 @@ document.addEventListener("click", async (e) => {
     const id = e.target.dataset.id;
     const select = document.querySelector(`.culture-result-select[data-id="${id}"]`);
     const result = select?.value;
-    const check = document.querySelector(`.contaminated-check[data-id="${id}"]`);
-    const contaminatedWithTreatment = result === "contaminada" && check ? check.checked : null;
+    const check = document.querySelector(`.with-treatment-check[data-id="${id}"]`);
+    const withTreatment = check ? check.checked : false;
     if (!result) return;
 
     try {
       const res = await fetch(`/culture/${id}/result`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ result, contaminatedWithTreatment }),
+        body: JSON.stringify({ result, withTreatment }),
       });
       const json = await res.json();
       if (json.success) {
@@ -63,6 +63,7 @@ document.addEventListener("click", async (e) => {
     const result = eventDeleteButton.dataset?.result;
     const dateLabel = eventDeleteButton.dataset?.dateLabel;
     const uddersLabel = eventDeleteButton.dataset?.uddersLabel;
+    const withTreatment = eventDeleteButton.dataset?.withTreatment === "true";
 
     if (!cultureId || !eventId) {
       return Swal.fire("Error", "No se pudo identificar el evento", "error");
@@ -76,6 +77,7 @@ document.addEventListener("click", async (e) => {
           <p><strong>Resultado:</strong> ${result || "N/D"}</p>
           <p><strong>Fecha:</strong> ${dateLabel || "N/D"}</p>
           ${uddersLabel ? `<p><strong>Ubres:</strong> ${uddersLabel}</p>` : ""}
+          <p><strong>Tratamiento:</strong> ${withTreatment ? "Con tratamiento" : "Sin tratamiento"}</p>
           <p style="margin-top:10px"><strong>Esto no elimina el animal</strong>, solo este evento del cultivo.</p>
         </div>
       `,
@@ -103,26 +105,60 @@ document.addEventListener("click", async (e) => {
       Swal.fire("Error", "No se pudo eliminar", "error");
     }
   }
+
+  const eventEditButton = e.target.closest(".culture-event-edit");
+  if (eventEditButton) {
+    const cultureId = eventEditButton.dataset?.id;
+    const eventId = eventEditButton.dataset?.eventId;
+    const result = eventEditButton.dataset?.result;
+    const dateLabel = eventEditButton.dataset?.dateLabel;
+    const uddersLabel = eventEditButton.dataset?.uddersLabel;
+    const currentWithTreatment = eventEditButton.dataset?.withTreatment === "true";
+
+    if (!cultureId || !eventId) {
+      return Swal.fire("Error", "No se pudo identificar el evento", "error");
+    }
+
+    const { isConfirmed, value } = await Swal.fire({
+      title: "Editar evento",
+      html: `
+        <div style="text-align:left">
+          <p><strong>Resultado:</strong> ${result || "N/D"}</p>
+          <p><strong>Fecha:</strong> ${dateLabel || "N/D"}</p>
+          ${uddersLabel ? `<p><strong>Ubres:</strong> ${uddersLabel}</p>` : ""}
+          <label style="display:flex; gap:10px; align-items:center; margin-top:10px;">
+            <input id="swal-with-treatment" type="checkbox" ${currentWithTreatment ? "checked" : ""} />
+            Con tratamiento
+          </label>
+        </div>
+      `,
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Guardar",
+      cancelButtonText: "Cancelar",
+      preConfirm: () => {
+        const chk = document.getElementById("swal-with-treatment");
+        return { withTreatment: !!chk?.checked };
+      },
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      const res = await fetch(`/culture/${cultureId}/event/${eventId}/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(value),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.success) {
+        throw new Error(json.message || "No se pudo actualizar el evento");
+      }
+      Swal.fire("Listo", "Evento actualizado", "success").then(() => window.location.reload());
+    } catch (error) {
+      Swal.fire("Error", error.message || "No se pudo actualizar", "error");
+    }
+  }
 });
 
-// Mostrar/ocultar check de tratamiento cuando se elige "contaminada"
-(() => {
-  const selects = document.querySelectorAll(".culture-result-select");
-  selects.forEach((select) => {
-    const id = select.dataset.id;
-    const container = document.querySelector(`.contaminated-inline[data-container-for="${id}"]`);
-    const check = document.querySelector(`.contaminated-check[data-id="${id}"]`);
-
-    const toggle = () => {
-      if (select.value === "contaminada") {
-        container?.classList.remove("hidden");
-      } else {
-        container?.classList.add("hidden");
-        if (check) check.checked = false;
-      }
-    };
-
-    select.addEventListener("change", toggle);
-    toggle();
-  });
-})();
+// (antes: checkbox solo para "contaminada") ahora "Con tratamiento" aplica a cualquier resultado

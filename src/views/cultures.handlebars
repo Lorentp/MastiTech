@@ -65,9 +65,9 @@
                         <option value="positivo">Positivo</option>
                         <option value="contaminada">Contaminada</option>
                     </select>
-                    <label class="contaminated-inline hidden" data-container-for="{{this._id}}">
-                        <input type="checkbox" class="contaminated-check" data-id="{{this._id}}">
-                        Contaminada con tratamiento
+                    <label class="checkbox-inline" data-container-for="{{this._id}}">
+                        <input type="checkbox" class="with-treatment-check" data-id="{{this._id}}">
+                        Con tratamiento
                     </label>
                     <button class="link-button culture-result-save" data-id="{{this._id}}">Guardar</button>
                     <button class="link-button danger culture-delete" data-id="{{this._id}}">Eliminar</button>
@@ -82,9 +82,7 @@
                                 {{#if this.udders.length}}
                                     Ubres: {{join this.udders ", "}}
                                 {{/if}}
-                                {{#if this.isContaminated}}
-                                    ・ {{#if this.contaminatedWithTreatment}}Con tratamiento{{else}}Sin tratamiento{{/if}}
-                                {{/if}}
+                                ・ {{#if this.withTreatment}}Con tratamiento{{else}}Sin tratamiento{{/if}}
                             </span>
                             <button
                                 type="button"
@@ -94,11 +92,28 @@
                                 data-result="{{this.result}}"
                                 data-date-label="{{formatDate this.recordedAt}}"
                                 data-udders-label="{{join this.udders ", "}}"
+                                data-with-treatment="{{this.withTreatment}}"
                                 aria-label="Eliminar evento"
                                 title="Eliminar evento"
                             >
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v10h-2V9zm4 0h2v10h-2V9zM7 9h2v10H7V9zM6 21h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2z"/>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                class="culture-event-edit culture-event-edit-icon"
+                                data-id="{{../_id}}"
+                                data-event-id="{{this.eventId}}"
+                                data-result="{{this.result}}"
+                                data-date-label="{{formatDate this.recordedAt}}"
+                                data-udders-label="{{join this.udders ", "}}"
+                                data-with-treatment="{{this.withTreatment}}"
+                                aria-label="Editar evento"
+                                title="Editar evento"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.83H5v-.92l9.06-9.06.92.92L5.92 20.08zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                                 </svg>
                             </button>
                         </div>
@@ -133,9 +148,7 @@
                                 {{#if this.udders.length}}
                                     Ubres: {{join this.udders ", "}}
                                 {{/if}}
-                                {{#if this.isContaminated}}
-                                    ・ {{#if this.contaminatedWithTreatment}}Con tratamiento{{else}}Sin tratamiento{{/if}}
-                                {{/if}}
+                                ・ {{#if this.withTreatment}}Con tratamiento{{else}}Sin tratamiento{{/if}}
                             </span>
                             <button
                                 type="button"
@@ -145,11 +158,28 @@
                                 data-result="{{this.result}}"
                                 data-date-label="{{formatDate this.recordedAt}}"
                                 data-udders-label="{{join this.udders ", "}}"
+                                data-with-treatment="{{this.withTreatment}}"
                                 aria-label="Eliminar evento"
                                 title="Eliminar evento"
                             >
                                 <svg viewBox="0 0 24 24" aria-hidden="true">
                                     <path d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v10h-2V9zm4 0h2v10h-2V9zM7 9h2v10H7V9zM6 21h12a2 2 0 0 0 2-2V7H4v12a2 2 0 0 0 2 2z"/>
+                                </svg>
+                            </button>
+                            <button
+                                type="button"
+                                class="culture-event-edit culture-event-edit-icon"
+                                data-id="{{../_id}}"
+                                data-event-id="{{this.eventId}}"
+                                data-result="{{this.result}}"
+                                data-date-label="{{formatDate this.recordedAt}}"
+                                data-udders-label="{{join this.udders ", "}}"
+                                data-with-treatment="{{this.withTreatment}}"
+                                aria-label="Editar evento"
+                                title="Editar evento"
+                            >
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm2.92 2.83H5v-.92l9.06-9.06.92.92L5.92 20.08zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                                 </svg>
                             </button>
                         </div>

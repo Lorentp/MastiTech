@@ -8,18 +8,14 @@ document
     for (const [key, value] of formData.entries()) {
       if (key === "udders") {
         payload.udders.push(value);
-      } else if (key === "contaminatedWithTreatment") {
+      } else if (key === "withTreatment") {
         payload[key] = true; // checkbox -> boolean
       } else {
         payload[key] = value;
       }
     }
 
-    if (payload.result !== "contaminada") {
-      delete payload.contaminatedWithTreatment;
-    } else {
-      payload.contaminatedWithTreatment = payload.contaminatedWithTreatment === true;
-    }
+    payload.withTreatment = payload.withTreatment === true;
 
     try {
       const res = await fetch("/culture/add", {
@@ -46,23 +42,4 @@ document
     }
   });
 
-// Toggle del check de tratamiento solo para "contaminada"
-(() => {
-  const select = document.getElementById("culture-result");
-  const extra = document.getElementById("contaminated-extra");
-  if (!select || !extra) return;
-
-  const checkbox = document.getElementById("contaminated-treatment");
-
-  const toggle = () => {
-    if (select.value === "contaminada") {
-      extra.classList.remove("hidden");
-    } else {
-      extra.classList.add("hidden");
-      if (checkbox) checkbox.checked = false;
-    }
-  };
-
-  select.addEventListener("change", toggle);
-  toggle();
-})();
+// (antes: toggle solo para "contaminada") ahora "Con tratamiento" aplica a cualquier resultado

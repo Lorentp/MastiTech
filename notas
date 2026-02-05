@@ -7,23 +7,6 @@ agregar opcion de Contaminada y select con tratamiento (check) en cultivo para p
 
 agregar corrales/rodeo y que para cultivos y tratamiento pueda elegirse el rodeo
 
-agregar en cultivo opcion de buscar por fecha todas con o sin resultado(que tome ultimo cultivo generado) ✅
-
-agregar en tratamientos boton para eliminar ese tratamiento activo en especifico, y tambien puedas borrar tratamientos viejos mal cargados ✅
-
-agegar boton que genere un dia mas de tratamient(descarte tmb) y copie tratameinto dia 1 tal cual ✅
-
-
-rodeo 4(recien paridas)
-Datos generados (
-    fecha parcion
-    tomar turnos (opcion de terminar antes "evento")
-    termina turnos para a ver flujeo (endo 1, endo 2, endo 3 florfenicol, endo 3 vetuemicina  ó lista)
-    nivel de cetosis cuando se flujea (informativo)
-    opcion de que tipo de tratameinto (endo) tenga scheck para que pase directo a tratamiento con turno y fecha
-
-    toda esta info se guarda aparte de animales en tratamiento
-) ✅✅
 
 
 general excel conn historial
