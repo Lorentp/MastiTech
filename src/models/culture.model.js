@@ -30,7 +30,7 @@ const cultureSchema = new mongoose.Schema(
     eventsCount: { type: Number, default: 0 },
     status: {
       type: String,
-      enum: ["pendiente", "negativo", "sin desarrollo", "positivo"],
+      enum: ["pendiente", "negativo", "sin desarrollo", "positivo", "contaminada"],
       default: "pendiente",
     },
   },
