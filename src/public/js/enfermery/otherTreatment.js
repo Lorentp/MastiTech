@@ -51,6 +51,38 @@ document.getElementById('add-other-form')?.addEventListener('submit', async (e) 
                 timer: 2000,
                 showConfirmButton: false
             }).then(() => location.reload());
+        } else if (result.reMastitisWarning) {
+            const { previousTreatment, previousTreatmentEndDate, daysSinceEnd } = result.reMastitisWarning;
+            const confirm = await Swal.fire({
+                icon: 'warning',
+                title: 'Reinicio cercano de tratamiento',
+                html: `
+                    <strong>${data.name}</strong><br>
+                    Tratamiento previo: <strong>${previousTreatment || 'N/D'}</strong><br>
+                    Finalizado: <strong>${previousTreatmentEndDate ? new Date(previousTreatmentEndDate).toLocaleDateString('es-AR') : 'N/D'}</strong><br>
+                    Días desde el fin: <strong>${typeof daysSinceEnd === 'number' ? daysSinceEnd : 'N/D'}</strong><br>
+                    Confirmá para continuar con este tratamiento.
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar tratamiento',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (confirm.isConfirmed) {
+                data.confirmReMastitis = true;
+                const res2 = await fetch('/cow/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const res2json = await res2.json();
+                if (res2json.success) {
+                    Swal.fire('Exito', 'Animal agregado (re-mastitis confirmada)', 'success')
+                        .then(() => location.reload());
+                } else {
+                    Swal.fire('Error', res2json.message || 'No se pudo agregar el animal', 'error');
+                }
+            }
         } else {
             Swal.fire('Error', result.message || 'No se pudo agregar el animal', 'error');
         }
