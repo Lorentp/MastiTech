@@ -20,6 +20,7 @@ const freshCowSchema = new mongoose.Schema(
   {
     owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     name: { type: String, required: true, trim: true, uppercase: true },
+    observation: { type: String, default: null, trim: true },
 
     calvingDate: { type: Date, required: true }, // fecha parición
 

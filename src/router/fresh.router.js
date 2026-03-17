@@ -80,10 +80,34 @@ router.post("/cow/add", async (req, res) => {
       return res.status(401).json({ success: false, message: "No autorizado" });
     }
     const owner = req.session.user._id;
-    const { name, calvingDate, eventStartTurn, eventId } = req.body;
+    const { name, observation, calvingDate, eventStartTurn, eventId } = req.body;
     const cow = await freshManager.addFreshCow({
       owner,
       name,
+      observation,
+      calvingDate,
+      eventStartTurn,
+      eventId,
+    });
+    res.status(200).json({ success: true, data: cow });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+router.post("/cow/:id/update", async (req, res) => {
+  try {
+    if (!req.session?.login || !req.session?.user?._id) {
+      return res.status(401).json({ success: false, message: "No autorizado" });
+    }
+    const owner = req.session.user._id;
+    const { id } = req.params;
+    const { name, observation, calvingDate, eventStartTurn, eventId } = req.body;
+    const cow = await freshManager.updateFreshCow({
+      owner,
+      cowId: id,
+      name,
+      observation,
       calvingDate,
       eventStartTurn,
       eventId,

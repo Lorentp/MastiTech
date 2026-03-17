@@ -188,7 +188,11 @@ class CultureManager {
     return culture;
   }
 
-  async updateEventById(cultureId, owner, eventId, { withTreatment }) {
+  async updateEventById(cultureId, owner, eventId, { result, recordedAt, udders, withTreatment }) {
+    const validResults = ["pendiente", "negativo", "sin desarrollo", "positivo", "contaminada"];
+    if (!validResults.includes(result)) {
+      throw new Error("Resultado invalido");
+    }
     if (typeof withTreatment !== "boolean") {
       throw new Error("withTreatment inválido");
     }
@@ -205,10 +209,20 @@ class CultureManager {
     const event = events.find((e) => String(e._id) === String(id));
     if (!event) throw new Error("Evento no encontrado");
 
-    event.withTreatment = withTreatment;
-    if (event.result === "contaminada") {
-      event.contaminatedWithTreatment = withTreatment;
+    const parsedDate = moment(recordedAt).tz("America/Argentina/Buenos_Aires").startOf("day");
+    if (!parsedDate.isValid()) {
+      throw new Error("Fecha invalida");
     }
+
+    const normalizedUdders = Array.isArray(udders)
+      ? udders.filter(Boolean)
+      : [udders].filter(Boolean);
+
+    event.result = result;
+    event.recordedAt = parsedDate.toDate();
+    event.udders = normalizedUdders;
+    event.withTreatment = withTreatment;
+    event.contaminatedWithTreatment = result === "contaminada" ? withTreatment : null;
 
     culture.markModified("events");
     await culture.save();

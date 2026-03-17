@@ -148,9 +148,12 @@ router.post("/:id/event/:eventId/update", async (req, res) => {
 
     const { id, eventId } = req.params;
     const owner = req.session.user._id;
-    const { withTreatment } = req.body;
+    const { result, recordedAt, udders, withTreatment } = req.body;
 
     const culture = await cultureManager.updateEventById(id, owner, eventId, {
+      result,
+      recordedAt,
+      udders,
       withTreatment: withTreatment === true || withTreatment === "true",
     });
 

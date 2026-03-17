@@ -423,6 +423,40 @@ select {
   fill: white;
 }
 
+.fresh-swal-popup {
+  width: min(92vw, 34rem) !important;
+  padding: 1rem !important;
+}
+
+.fresh-swal-html {
+  margin: 0.5rem 0 0 !important;
+}
+
+.fresh-swal-form {
+  text-align: left;
+}
+
+.fresh-swal-field {
+  margin-bottom: 0.65rem;
+}
+
+.fresh-swal-field label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-family: "Futura Heavy", sans-serif;
+  color: var(--VerdeOscuro);
+  font-size: 0.95rem;
+}
+
+.fresh-swal-field .swal2-input,
+.fresh-swal-field .swal2-select {
+  width: 100% !important;
+  margin: 0 !important;
+  height: 2.7rem !important;
+  font-size: 1rem !important;
+  box-sizing: border-box;
+}
+
 
 
 /*Finalizar vacas*/

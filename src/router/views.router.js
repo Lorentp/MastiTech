@@ -251,6 +251,7 @@ router.get("/recien-paridas/animales", async (req, res) => {
         }
         const userId = req.session.user._id;
         const freshCowsDb = await freshManager.getFreshCows(userId);
+        const events = await freshManager.getEventTemplates(userId);
         const freshCows = freshCowsDb
             .map(c => {
                 const obj = c.toObject();
@@ -260,9 +261,24 @@ router.get("/recien-paridas/animales", async (req, res) => {
                 };
             })
             .sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { numeric: true, sensitivity: "base" }));
-        res.render("fresh-search", { freshCows });
+        res.render("fresh-search", { freshCows, events });
     } catch (error) {
         console.log("Error recien-paridas animales:", error);
+        res.status(500).send("Error, intentelo nuevamente");
+    }
+});
+
+router.get("/descargas", async (req, res) => {
+    try {
+        if (!req.session.login) {
+            res.redirect("/");
+            return;
+        }
+
+        const today = moment().tz("America/Argentina/Buenos_Aires").format("YYYY-MM-DD");
+        res.render("exports", { today });
+    } catch (error) {
+        console.log("Error descargas:", error);
         res.status(500).send("Error, intentelo nuevamente");
     }
 });

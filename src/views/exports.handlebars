@@ -1,0 +1,42 @@
+{{>global/headerlogged}}
+
+<nav>
+    <a href="/home" class="link-button">Volver al inicio</a>
+    <a href="/animales" class="link-button">Buscador animales</a>
+    <a href="/cultivos" class="link-button">Cultivos</a>
+    <a href="/recien-paridas" class="link-button">Recien paridas</a>
+</nav>
+
+<div class="finished-milk-discard-title">
+    <h1>Descargar informacion</h1>
+</div>
+
+<div class="form-container">
+
+    <form id="export-form">
+        <div class="filter-row">
+            <label for="export-period">Periodo:</label>
+            <select id="export-period" name="period" required>
+                <option value="month" selected>Mes</option>
+                <option value="week">Semana</option>
+                <option value="days">Dias</option>
+                <option value="year">Ano</option>
+            </select>
+        </div>
+
+        <div class="filter-row">
+            <label for="export-reference-date">Fecha de referencia:</label>
+            <input type="date" id="export-reference-date" name="referenceDate" value="{{today}}" required>
+        </div>
+
+        <div class="filter-row hidden" id="export-days-row">
+            <label for="export-days">Cantidad de dias:</label>
+            <input type="number" id="export-days" name="days" value="7" min="1">
+        </div>
+
+        <button type="submit" class="excel-button">Descargar Excel</button>
+    </form>
+</div>
+
+<script src="/js/export/export.js"></script>
+

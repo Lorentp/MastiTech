@@ -48,7 +48,7 @@ class FreshManager {
     return FlujeoTypeModel.find({ owner }).sort({ title: 1 });
   }
 
-  async addFreshCow({ owner, name, calvingDate, eventStartTurn, eventId }) {
+  async addFreshCow({ owner, name, observation, calvingDate, eventStartTurn, eventId }) {
     if (!owner || !name || !calvingDate || !eventStartTurn || !eventId) {
       throw new Error("Datos obligatorios faltantes");
     }
@@ -69,6 +69,7 @@ class FreshManager {
     const freshCow = new FreshCowModel({
       owner,
       name: name.trim().toUpperCase(),
+      observation: (observation ?? "").toString().trim() || null,
       calvingDate: calving,
       eventSnapshot: { title: event.title, duration: event.duration },
       eventStartDate: startDateWithTurn,
@@ -82,6 +83,36 @@ class FreshManager {
 
   async getFreshCows(owner) {
     return FreshCowModel.find({ owner }).sort({ name: 1 });
+  }
+
+  async updateFreshCow({ owner, cowId, name, observation, calvingDate, eventStartTurn, eventId }) {
+    const cow = await FreshCowModel.findOne({ _id: cowId, owner });
+    if (!cow) throw new Error("Animal no encontrado");
+
+    if (!name || !calvingDate || !eventStartTurn || !eventId) {
+      throw new Error("Datos obligatorios faltantes");
+    }
+
+    const event = await FreshEventModel.findOne({ _id: eventId, owner });
+    if (!event) throw new Error("Evento no encontrado");
+
+    const calving = moment(calvingDate).tz("America/Argentina/Buenos_Aires").startOf("day").toDate();
+    const start = moment(calvingDate).tz("America/Argentina/Buenos_Aires").startOf("day");
+    const startHour = eventStartTurn === "morning" ? 0 : 12;
+    start.set({ hour: startHour, minute: 0, second: 0, millisecond: 0 });
+    const startDateWithTurn = start.toDate();
+    const eventEndDate = moment(start).add(event.duration * 12, "hours").toDate();
+
+    cow.name = name.trim().toUpperCase();
+    cow.calvingDate = calving;
+    cow.observation = (observation ?? "").toString().trim() || null;
+    cow.eventSnapshot = { title: event.title, duration: event.duration };
+    cow.eventStartDate = startDateWithTurn;
+    cow.eventStartTurn = eventStartTurn;
+    cow.eventEndDate = eventEndDate;
+
+    await cow.save();
+    return cow;
   }
 
   async finalizeEventToFlujeo({

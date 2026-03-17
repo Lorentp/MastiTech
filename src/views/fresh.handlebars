@@ -4,9 +4,18 @@
     <a href="/home" class="link-button">Volver al inicio</a>
     <a href="/recien-paridas/animales" class="link-button">Buscador recien paridas</a>
     <a href="/cultivos" class="link-button">Cultivos</a>
+    <a href="/descargas" class="link-button">Descargas</a>
 </nav>
 
 <h1>Recien paridas</h1>
+
+<div class="form-container">
+    <h2>Buscar animales</h2>
+    <div class="filter-row">
+        <label for="fresh-home-search">Buscar por caravana:</label>
+        <input type="text" id="fresh-home-search" placeholder="Ej: 1234">
+    </div>
+</div>
 
 <div class="add-page-buttons">
     <button class="add-page-button" id="addFreshCowButton">Cargar animal</button>
@@ -19,6 +28,9 @@
         <form id="fresh-cow-form">
             <label for="fresh-name">Caravana del animal:</label>
             <input type="text" id="fresh-name" name="name" required>
+
+            <label for="fresh-observation">Observacion:</label>
+            <input type="text" id="fresh-observation" name="observation" placeholder="Dato opcional">
 
             <label for="fresh-calvingDate">Fecha de paricion:</label>
             <input type="date" id="fresh-calvingDate" name="calvingDate" required>
@@ -68,7 +80,7 @@
 {{#if inEvent.length}}
     <div class="treated-container compact-grid">
     {{#each inEvent}}
-        <div class="finished-milk-discard-card compact-card">
+        <div class="finished-milk-discard-card compact-card fresh-home-card" data-name="{{this.name}}">
             <div class="card-header compact-header">
                 <h3>{{this.name}}</h3>
                 <span class="events-badge">Paricion: {{formatDate this.calvingDate}}</span>
@@ -78,6 +90,20 @@
                 <p><strong>Arranque:</strong> {{formatDate this.eventStartDate}} ({{formatTurn this.eventStartTurn}})</p>
                 <p><strong>Fin estimado:</strong> {{formatDate this.eventEndDate}}</p>
                 <p><strong>Turno actual:</strong> {{this.eventCurrentTurn}} / {{this.eventSnapshot.duration}}</p>
+                {{#if this.observation}}<p><strong>Observacion:</strong> {{this.observation}}</p>{{/if}}
+                <hr>
+                <button type="button" class="link-button fresh-edit-button"
+                    data-cow-id="{{this._id}}"
+                    data-name="{{this.name}}"
+                    data-observation="{{this.observation}}"
+                    data-calving-date="{{this.calvingDateISO}}"
+                    data-event-start-turn="{{this.eventStartTurn}}"
+                    data-event-title="{{this.eventSnapshot.title}}">
+                    Editar animal
+                </button>
+                <button type="button" class="link-button danger fresh-delete-button" data-cow-id="{{this._id}}" data-name="{{this.name}}">
+                    Eliminar animal
+                </button>
             </div>
         </div>
     {{/each}}
@@ -90,7 +116,7 @@
 {{#if toFinalize.length}}
     <div class="treated-container compact-grid">
     {{#each toFinalize}}
-        <div class="finished-milk-discard-card compact-card">
+        <div class="finished-milk-discard-card compact-card fresh-home-card" data-name="{{this.name}}">
             <div class="card-header compact-header">
                 <h3>{{this.name}}</h3>
                 <span class="events-badge">Paricion: {{formatDate this.calvingDate}}</span>
@@ -100,6 +126,7 @@
                 <p><strong>Arranco:</strong> {{formatDate this.eventStartDate}} ({{formatTurn this.eventStartTurn}})</p>
                 <p><strong>Turnos totales:</strong> {{this.eventSnapshot.duration}}</p>
                 <p><strong>Estado:</strong> Evento terminado, cargar endometritis</p>
+                {{#if this.observation}}<p><strong>Observacion:</strong> {{this.observation}}</p>{{/if}}
                 <hr>
                 <form class="finalize-event-form">
                     <input type="hidden" name="cowId" value="{{this._id}}">
@@ -140,6 +167,19 @@
 
                     <button type="submit" class="link-button">Guardar endometritis</button>
                 </form>
+                <hr>
+                <button type="button" class="link-button fresh-edit-button"
+                    data-cow-id="{{this._id}}"
+                    data-name="{{this.name}}"
+                    data-observation="{{this.observation}}"
+                    data-calving-date="{{this.calvingDateISO}}"
+                    data-event-start-turn="{{this.eventStartTurn}}"
+                    data-event-title="{{this.eventSnapshot.title}}">
+                    Editar animal
+                </button>
+                <button type="button" class="link-button danger fresh-delete-button" data-cow-id="{{this._id}}" data-name="{{this.name}}">
+                    Eliminar animal
+                </button>
             </div>
         </div>
     {{/each}}
@@ -152,7 +192,7 @@
 {{#if finished.length}}
     <div class="treated-container compact-grid">
     {{#each finished}}
-        <div class="finished-milk-discard-card compact-card">
+        <div class="finished-milk-discard-card compact-card fresh-home-card" data-name="{{this.name}}">
             <div class="card-header compact-header">
                 <h3>{{this.name}}</h3>
             </div>
@@ -161,6 +201,7 @@
                 <p><strong>Endometritis:</strong> {{#if this.flujeoSnapshot.title}}{{this.flujeoSnapshot.title}}{{else}}N/D{{/if}}</p>
                 {{#if this.flujeoStartDate}}<p><strong>Fecha endometritis:</strong> {{formatDate this.flujeoStartDate}}</p>{{/if}}
                 <p><strong>Cetosis:</strong> {{#if this.ketosisLevel}}{{this.ketosisLevel}}{{else}}N/D{{/if}}</p>
+                {{#if this.observation}}<p><strong>Observacion:</strong> {{this.observation}}</p>{{/if}}
                 {{#if this.medicationTreatment.treatmentSnapshot}}
                     <p><strong>Tratamiento:</strong> {{this.medicationTreatment.treatmentSnapshot.title}}</p>
                     {{#if this.medicationTreatment.endDateDiscardMilk}}<p><strong>Fin descarte:</strong> {{formatDate this.medicationTreatment.endDateDiscardMilk}}</p>{{/if}}
@@ -185,6 +226,16 @@
                     <input type="hidden" name="cowId" value="{{this._id}}">
                     <button type="submit" class="link-button danger">Eliminar animal</button>
                 </form>
+                <hr>
+                <button type="button" class="link-button fresh-edit-button"
+                    data-cow-id="{{this._id}}"
+                    data-name="{{this.name}}"
+                    data-observation="{{this.observation}}"
+                    data-calving-date="{{this.calvingDateISO}}"
+                    data-event-start-turn="{{this.eventStartTurn}}"
+                    data-event-title="{{this.eventSnapshot.title}}">
+                    Editar animal
+                </button>
             </div>
         </div>
     {{/each}}
@@ -193,5 +244,7 @@
     <div class="form-container"><p>No hay registros finalizados.</p></div>
 {{/if}}
 
+<script>window.freshEventOptions = {{{json events}}};</script>
 <script src="/js/fresh/freshUI.js"></script>
 <script src="/js/fresh/freshForms.js"></script>
+<script src="/js/fresh/freshActions.js"></script>

@@ -31,6 +31,20 @@
                 <p><strong>Evento:</strong> {{this.eventSnapshot.title}}</p>
                 <p><strong>Endometritis:</strong> {{#if this.flujeoSnapshot.title}}{{this.flujeoSnapshot.title}}{{else}}Pendiente{{/if}}</p>
                 <p><strong>Cetosis:</strong> {{#if this.ketosisLevel}}{{this.ketosisLevel}}{{else}}N/D{{/if}}</p>
+                {{#if this.observation}}<p><strong>Observacion:</strong> {{this.observation}}</p>{{/if}}
+                <hr>
+                <button type="button" class="link-button fresh-edit-button"
+                    data-cow-id="{{this._id}}"
+                    data-name="{{this.name}}"
+                    data-observation="{{this.observation}}"
+                    data-calving-date="{{this.calvingDateISO}}"
+                    data-event-start-turn="{{this.eventStartTurn}}"
+                    data-event-title="{{this.eventSnapshot.title}}">
+                    Editar animal
+                </button>
+                <button type="button" class="link-button danger fresh-delete-button" data-cow-id="{{this._id}}" data-name="{{this.name}}">
+                    Eliminar animal
+                </button>
             </div>
         </div>
     {{/each}}
@@ -39,4 +53,6 @@
     <p class="no-cows-message">Todavía no hay registros.</p>
 {{/if}}
 
+<script>window.freshEventOptions = {{{json events}}};</script>
 <script src="/js/fresh/freshSearch.js"></script>
+<script src="/js/fresh/freshActions.js"></script>

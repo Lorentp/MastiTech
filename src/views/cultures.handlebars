@@ -3,6 +3,7 @@
 <nav>
     <a href="/home" class="link-button">Volver al inicio</a>
     <a href="/recien-paridas" class="link-button">Recien paridas</a>
+    <a href="/descargas" class="link-button">Descargas</a>
     <a href="/en-tratamiento" class="link-button">Animales en tratamiento</a>
     <a href="/descarte-leche" class="link-button">Animales en descarte leche</a>
     <a href="/liberar-leche" class="link-button">Animales para liberar</a>
@@ -107,7 +108,9 @@
                                 data-event-id="{{this.eventId}}"
                                 data-result="{{this.result}}"
                                 data-date-label="{{formatDate this.recordedAt}}"
+                                data-recorded-at="{{this.recordedAtISO}}"
                                 data-udders-label="{{join this.udders ", "}}"
+                                data-udders="{{join this.udders ","}}"
                                 data-with-treatment="{{this.withTreatment}}"
                                 aria-label="Editar evento"
                                 title="Editar evento"
@@ -173,7 +176,9 @@
                                 data-event-id="{{this.eventId}}"
                                 data-result="{{this.result}}"
                                 data-date-label="{{formatDate this.recordedAt}}"
+                                data-recorded-at="{{this.recordedAtISO}}"
                                 data-udders-label="{{join this.udders ", "}}"
+                                data-udders="{{join this.udders ","}}"
                                 data-with-treatment="{{this.withTreatment}}"
                                 aria-label="Editar evento"
                                 title="Editar evento"
